@@ -1,0 +1,318 @@
+/* Costum for YouTube — the shared Apple design layer.
+ *
+ * One file holds the tokens and the control primitives so the toolbar popup
+ * and the settings page cannot drift apart. Values follow Apple's published
+ * system palette and metrics rather than approximations: system colors for
+ * tints, the semantic label/fill/separator ramps for everything else, 10pt
+ * corners on grouped lists, and the sheet easing curve on every transition.
+ *
+ * The in-page panel keeps its own copy of these tokens because it lives in a
+ * shadow root and cannot link a stylesheet. Keep the two in step.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ---- system tints ---- */
+  --blue: #007AFF;
+  --green: #34C759;
+  --red: #FF3B30;
+  --orange: #FF9500;
+  --indigo: #5856D6;
+  --purple: #AF52DE;
+  --pink: #FF2D55;
+  --teal: #30B0C7;
+  --gray: #8E8E93;
+  --brown: #A2845E;
+
+  --accent: var(--blue);
+  --accent-ink: #FFFFFF;
+  /* System blue is 4.02:1 on white — fine for a filled control, where the bar
+     is 3:1, and under the 4.5:1 that blue *text* on a light ground needs. So
+     surfaces keep Apple's blue and text takes a darker one. On a dark ground
+     the lighter blue already clears AA, so there the two are the same. */
+  --accent-text: #0071E3;
+  --danger: var(--red);
+
+  /* ---- semantic labels ---- */
+  --label: #1D1D1F;
+  /* Apple's own secondaryLabel is rgba(60,60,67,.6), which composites to
+     8A8A8E on white — 3.44:1, under the 4.5:1 that small text needs. Apple can
+     carry it with their rendering and sizes; a settings list of 12px hints
+     cannot. These are solid values chosen to clear AA on their own ground. */
+  --label-2: #6E6E73;   /* 5.07:1 on white */
+  /* Decoration only — chevrons, the clear-button disc. Never text. */
+  --label-3: rgba(60, 60, 67, .34);
+
+  /* ---- fills and separators ---- */
+  --fill-1: rgba(118, 118, 128, .12);
+  --fill-2: rgba(118, 118, 128, .08);
+  --fill-3: rgba(118, 118, 128, .05);
+  --switch-off: rgba(120, 120, 128, .16);
+  --separator: rgba(60, 60, 67, .16);
+  --hairline: rgba(0, 0, 0, .08);
+
+  /* ---- backgrounds ---- */
+  --bg: #F2F2F7;
+  --bg-raised: #FFFFFF;
+  --bg-sidebar: rgba(246, 246, 248, .82);
+  --bg-sunk: #EBEBF0;
+  --segment-thumb: #FFFFFF;
+
+  /* ---- elevation ---- */
+  --shadow-thumb: 0 3px 8px rgba(0, 0, 0, .12), 0 1px 1px rgba(0, 0, 0, .04), 0 0 0 .5px rgba(0, 0, 0, .04);
+  --shadow-card: 0 0 0 .5px var(--hairline), 0 1px 1px rgba(0, 0, 0, .03);
+  --shadow-sheet: 0 24px 60px rgba(0, 0, 0, .22), 0 0 0 .5px rgba(0, 0, 0, .06);
+
+  /* ---- metrics ---- */
+  --r-list: 10px;
+  --r-control: 8px;
+  --r-sheet: 14px;
+  --r-pill: 980px;
+
+  /* Apple's sheet curve: quick to leave, slow to land. */
+  --ease: cubic-bezier(.32, .72, 0, 1);
+  --dur: .3s;
+  --dur-fast: .18s;
+
+  /* -apple-system asks the OS for San Francisco, which is how SF Pro is used
+     legitimately in a web extension — the font is never shipped, the system
+     provides it. Apple cuts SF at two optical sizes: Text below 20pt and
+     Display at or above it. Safari picks automatically; naming Display keeps
+     headings correct in the Chrome build too. */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "Geeza Pro", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --blue: #0A84FF;
+    --accent-text: #0A84FF;
+    --green: #30D158;
+    --red: #FF453A;
+    --orange: #FF9F0A;
+    --indigo: #5E5CE6;
+    --purple: #BF5AF2;
+    --pink: #FF375F;
+    --teal: #40C8E0;
+    --gray: #98989D;
+    --brown: #AC8E68;
+
+    --label: #F5F5F7;
+    --label-2: #A1A1A6;   /* 6.61:1 on the dark surface */
+    --label-3: rgba(235, 235, 245, .32);
+
+    --fill-1: rgba(118, 118, 128, .24);
+    --fill-2: rgba(118, 118, 128, .18);
+    --fill-3: rgba(118, 118, 128, .12);
+    --switch-off: rgba(120, 120, 128, .32);
+    --separator: rgba(84, 84, 88, .60);
+    --hairline: rgba(255, 255, 255, .08);
+
+    --bg: #1C1C1E;
+    --bg-raised: #2C2C2E;
+    --bg-sidebar: rgba(30, 30, 32, .82);
+    --bg-sunk: #141416;
+    /* In the dark the selected segment is the lighter one — a white thumb
+       would be darker than its own track. */
+    --segment-thumb: #636366;
+
+    --shadow-thumb: 0 3px 8px rgba(0, 0, 0, .5), 0 0 0 .5px rgba(0, 0, 0, .3);
+    --shadow-card: 0 0 0 .5px var(--hairline);
+    --shadow-sheet: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 .5px rgba(255, 255, 255, .08);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  font-synthesis: none;
+  /* SF is a variable font on Apple platforms; let it pick its optical size. */
+  font-optical-sizing: auto;
+  color: var(--label);
+  margin: 0;
+}
+body[dir="rtl"] { font-family: var(--font-ar); }
+
+/* Apple's focus ring: the accent at reduced opacity, outside the control. */
+:focus { outline: none; }
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 1px;
+  border-radius: var(--r-control);
+}
+
+/* A grouped list clips itself to get rounded corners, which also clips any
+   focus ring drawn outside a row: every edge but one is cut away and what is
+   left looks like a stray blue rule under the row, not like focus. Rows inside
+   a clipped container draw their ring on the inside instead. */
+.list-row:focus-visible {
+  outline-offset: -3px;
+  border-radius: 0;
+}
+
+/* ---------------------------------------------------------------- switch --
+   Drawn on a <span>, never on the <input>.
+
+   Safari does not generate ::before/::after on form controls — it treats an
+   <input> as a replaced element even with appearance:none — so a knob drawn as
+   input::after simply does not exist there. The switch renders as a bare
+   rounded rectangle with nothing in it, which reads as a dead control: the
+   click registers, but nothing visibly moves. Chrome renders it fine, which is
+   what makes this so easy to ship broken.
+
+   So the input sits invisible on top for hit-testing, focus and assistive
+   technology, and the span beside it does the drawing.
+*/
+.sw {
+  position: relative; display: inline-flex; flex: 0 0 auto;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.sw input[type="checkbox"] {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  margin: 0; padding: 0; opacity: 0; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+}
+
+/* The drawn switch. Also used on its own, with aria-pressed on the parent,
+   where the whole row is the control and a second tab stop would be noise. */
+.sw-track {
+  display: block; flex: 0 0 auto; position: relative;
+  width: 38px; height: 23px; border-radius: var(--r-pill);
+  background: var(--switch-off);
+  transition: background var(--dur-fast) var(--ease);
+}
+.sw-track::after {
+  content: "";
+  position: absolute; inset-block-start: 1.5px; inset-inline-start: 1.5px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #FFFFFF; box-shadow: var(--shadow-thumb);
+  transition: transform var(--dur) var(--ease);
+}
+
+.sw input[type="checkbox"]:checked ~ .sw-track,
+[aria-pressed="true"] > .sw-track,
+.sw-track[data-on] { background: var(--accent); }
+
+.sw input[type="checkbox"]:checked ~ .sw-track::after,
+[aria-pressed="true"] > .sw-track::after,
+.sw-track[data-on]::after { transform: translateX(15px); }
+
+body[dir="rtl"] .sw input[type="checkbox"]:checked ~ .sw-track::after,
+body[dir="rtl"] [aria-pressed="true"] > .sw-track::after,
+body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
+
+.sw input[type="checkbox"]:disabled { cursor: not-allowed; }
+.sw input[type="checkbox"]:disabled ~ .sw-track { opacity: .4; }
+.sw input[type="checkbox"]:focus-visible ~ .sw-track {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------- segmented control --
+   For a small set of exclusive choices. The selected segment is a raised
+   thumb on a sunken track, the way UISegmentedControl draws it.
+*/
+.segmented {
+  display: flex; gap: 2px; padding: 2px;
+  background: var(--fill-1); border-radius: 9px;
+}
+.segmented button {
+  flex: 1 1 0; min-width: 0;
+  border: 0; background: none; color: var(--label);
+  font: inherit; font-size: 12.5px; line-height: 1.4;
+  padding: 5px 6px; border-radius: 7px; cursor: pointer;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.segmented button:hover { background: var(--fill-3); }
+.segmented button[aria-pressed="true"] {
+  background: var(--segment-thumb); font-weight: 590;
+  box-shadow: var(--shadow-thumb);
+}
+.segmented button:active { transform: scale(.97); }
+
+/* Four choices do not fit one row at popover width. Two rows of two keeps the
+   segmented control's meaning — one selection, or none — without shrinking the
+   labels to initials. */
+.segmented.grid2 { display: grid; grid-template-columns: 1fr 1fr; }
+
+
+/* ------------------------------------------------------- grouped list ----
+   An inset grouped table: one card, hairline separators that stop short of
+   the leading edge so the labels line up down the column.
+*/
+.list {
+  background: var(--bg-raised); border-radius: var(--r-list);
+  box-shadow: var(--shadow-card); overflow: hidden;
+}
+.list-row {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 9px 14px; min-height: 44px;
+  position: relative; cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.list-row + .list-row::before {
+  content: ""; position: absolute; inset-block-start: 0;
+  inset-inline: 14px 0; height: .5px; background: var(--separator);
+}
+.list-row:hover { background: var(--fill-3); }
+.list-row:active { background: var(--fill-2); }
+
+/* ------------------------------------------------------------- buttons ---- */
+.btn {
+  font: inherit; font-size: 13px; cursor: pointer;
+  border: 0; border-radius: var(--r-control);
+  padding: 7px 14px; color: var(--label);
+  background: var(--fill-1);
+  transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.btn:hover { background: var(--fill-2); }
+.btn:active { transform: scale(.97); }
+.btn.filled { background: var(--accent); color: var(--accent-ink); font-weight: 590; }
+.btn.filled:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+.btn.plain { background: none; color: var(--accent-text); padding-inline: 6px; }
+.btn.plain:hover { background: var(--fill-3); }
+.btn.danger { color: var(--danger); }
+
+/* --------------------------------------------------------- text inputs ---- */
+input[type="text"], input[type="password"], input[type="time"],
+input[type="search"], select, textarea {
+  font: inherit; font-size: 13px; color: var(--label);
+  background: var(--bg-raised);
+  border: .5px solid var(--separator); border-radius: 6px;
+  padding: 5px 9px;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+select {
+  cursor: pointer; padding-inline-end: 6px;
+  background: var(--bg-raised);
+}
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline-offset: 0;
+}
+
+/* -------------------------------------------------- accessibility rails --- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: .001ms !important;
+    animation-duration: .001ms !important;
+  }
+  .btn:active, .segmented button:active { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root { --bg-sidebar: var(--bg); }
+  .vibrant { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+}
+@media (prefers-contrast: more) {
+  :root {
+    --separator: rgba(60, 60, 67, .5);
+    --label-2: rgba(60, 60, 67, .85);
+  }
+}

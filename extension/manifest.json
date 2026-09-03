@@ -1,0 +1,97 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extName__",
+  "description": "__MSG_extDescription__",
+  "version": "1.0.0",
+  "default_locale": "en",
+  "icons": {
+    "48": "images/icon-48.png",
+    "128": "images/icon-128.png",
+    "512": "images/icon-512.png"
+  },
+  "permissions": [
+    "storage",
+    "declarativeNetRequest",
+    "declarativeNetRequestWithHostAccess",
+    "tabs"
+  ],
+  "host_permissions": [
+    "*://*.youtube.com/*",
+    "*://*.youtube-nocookie.com/*",
+    "https://sponsor.ajay.app/*",
+    "https://api.anthropic.com/*"
+  ],
+  "background": {
+    "service_worker": "background/bg.js",
+    "scripts": [
+      "common/defaults.js",
+      "background/bg.js"
+    ]
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "common/defaults.js",
+        "common/css.js",
+        "content/boot.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    },
+    {
+      "matches": [
+        "*://*.youtube.com/*"
+      ],
+      "js": [
+        "content/modules/playback.js",
+        "content/modules/audio.js",
+        "content/modules/filters.js",
+        "content/modules/layout.js",
+        "content/modules/tabtitle.js",
+        "content/modules/homegrid.js",
+        "content/modules/nativeplayer.js",
+        "content/modules/shorts.js",
+        "content/modules/declutter.js",
+        "content/modules/contentblock.js",
+        "content/modules/shortcuts.js",
+        "content/modules/capture.js",
+        "content/modules/sponsors.js",
+        "content/modules/ads.js",
+        "content/modules/summary.js",
+        "content/modules/focus.js",
+        "content/modules/diagnostics.js",
+        "content/panel.js",
+        "content/router.js"
+      ],
+      "run_at": "document_end",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_popup": "ui/popup/popup.html",
+    "default_title": "__MSG_extName__"
+  },
+  "options_page": "ui/options/options.html",
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "content/page/bridge.js"
+      ],
+      "matches": [
+        "*://*.youtube.com/*"
+      ]
+    }
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "id": "ads",
+        "enabled": false,
+        "path": "rules/ads.json"
+      }
+    ]
+  }
+}

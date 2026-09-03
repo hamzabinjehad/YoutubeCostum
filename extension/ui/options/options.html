@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Costum for YouTube — Settings</title>
+  <link rel="stylesheet" href="../shared/apple.css">
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar vibrant">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="brand-text">
+          <b data-i18n="title">Costum for YouTube</b>
+          <small class="lede" data-i18n="lede">One purchase. Every feature. No subscription.</small>
+        </span>
+      </div>
+
+      <div class="search">
+        <input type="search" id="search" autocomplete="off" spellcheck="false">
+        <kbd class="search-key" aria-hidden="true">/</kbd>
+        <button type="button" class="search-clear" id="search-clear" hidden></button>
+      </div>
+
+      <nav class="tabs" id="tabs" aria-label="Sections"></nav>
+
+      <label class="master">
+        <span data-i18n="enabled">Enabled</span>
+        <span class="sw">
+          <input type="checkbox" id="master">
+          <span class="sw-track" aria-hidden="true"></span>
+        </span>
+      </label>
+    </aside>
+
+    <div class="content">
+      <main id="panes"></main>
+
+      <footer>
+        <div class="io">
+          <button type="button" class="btn" id="export" data-i18n="export">Export settings</button>
+          <button type="button" class="btn" id="import" data-i18n="import">Import settings</button>
+          <button type="button" class="btn danger" id="reset" data-i18n="reset">Reset all</button>
+        </div>
+        <span class="saved" id="saved" role="status" aria-live="polite"></span>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../../common/defaults.js"></script>
+  <script src="../../common/lock.js"></script>
+  <script src="../../common/store.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

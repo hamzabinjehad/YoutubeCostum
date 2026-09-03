@@ -1,0 +1,15 @@
+apple/generated/
+.DS_Store
+*.xcuserstate
+xcuserdata/
+build/
+.harness/
+
+# Chrome's extension signing key. Whoever holds this can publish updates that
+# look like they came from you — it must never leave the machine.
+extension.pem
+extension.crx
+
+# Stray clones of this same repo that ended up inside it.
+/YoutubeCostum/
+/YoutubeCustomizer/

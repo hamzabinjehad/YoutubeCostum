@@ -1,0 +1,108 @@
+/* The toolbar popover. Tokens and the control primitives come from
+   ../shared/apple.css; this file is only the popover's own layout. */
+
+body {
+  width: 340px;
+  background: var(--bg);
+  font-size: 13px; line-height: 1.45;
+  display: flex; flex-direction: column;
+}
+
+/* ---- the state card ---- */
+body { padding: 14px; gap: 0; }
+
+.hero {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; min-height: 60px;
+  background: var(--bg-raised); border-radius: 14px;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.hero:hover { background: color-mix(in srgb, var(--bg-raised) 92%, var(--label)); }
+.hero-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.hero-text b { font-family: var(--font-display); font-size: 16px; font-weight: 590; letter-spacing: -.016em; }
+.hero-text small {
+  font-size: 12.5px; color: var(--label-2); margin-block-start: 1px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* On means the accent; off should read as off at a glance, not just quieter. */
+.hero:has(#master:checked) .hero-text small { color: var(--accent-text); font-weight: 500; }
+
+.mark {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 8.5px;
+  background: linear-gradient(180deg, #FF4B4B 0%, #D6202B 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, .18), inset 0 .5px 0 rgba(255, 255, 255, .35);
+  position: relative;
+  transition: filter var(--dur) var(--ease);
+}
+.hero:has(#master:not(:checked)) .mark { filter: grayscale(1) opacity(.55); }
+.mark::after {
+  content: ""; position: absolute; inset: 0; background: #FFFFFF;
+  -webkit-mask:
+    radial-gradient(circle at 71% 28%, #000 3.1px, transparent 3.6px),
+    radial-gradient(circle at 37% 50%, #000 3.1px, transparent 3.6px),
+    radial-gradient(circle at 59% 72%, #000 3.1px, transparent 3.6px),
+    linear-gradient(#000 0 0) 50% 28%/56% 1.8px no-repeat,
+    linear-gradient(#000 0 0) 50% 50%/56% 1.8px no-repeat,
+    linear-gradient(#000 0 0) 50% 72%/56% 1.8px no-repeat;
+  -webkit-mask-composite: source-over;
+}
+
+/* ---- body ---- */
+main { display: flex; flex-direction: column; padding: 18px 0 4px; }
+section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 18px; }
+
+/* Apple sets group headers in small caps grey above the group, not inside it. */
+.label {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .05em;
+  text-transform: uppercase; color: var(--label-2);
+  padding-inline: 2px;
+}
+/* The six presets are a shortcut, not the whole range — the panel and the
+   settings page can both leave the speed between them. Showing the real value
+   means the row is never silently wrong about where you are. */
+.label-value {
+  font-variant-numeric: tabular-nums; letter-spacing: 0;
+  text-transform: none; color: var(--label);
+}
+
+/* ---- the page rows ---- */
+.list-row .row-label { color: var(--label); min-width: 0; }
+.list-row .row-label span {
+  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.list-row .row-label small {
+  display: block; font-size: 11.5px; color: var(--label-2); margin-block-start: 1px;
+}
+
+/* ---- footer ---- */
+footer { padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; min-height: 40px; padding: 9px 14px;
+  border: 0; border-radius: var(--r-list); cursor: pointer;
+  background: var(--bg-raised); box-shadow: var(--shadow-card);
+  color: var(--label); font: inherit; font-size: 13px;
+  transition: background var(--dur-fast) var(--ease);
+}
+.settings-row:hover { background: var(--fill-3); }
+.settings-row:active { background: var(--fill-2); }
+.chevron {
+  width: 7px; height: 7px; flex: 0 0 auto;
+  border-inline-end: 1.8px solid var(--label-3);
+  border-block-start: 1.8px solid var(--label-3);
+  transform: rotate(45deg);
+}
+body[dir="rtl"] .chevron { transform: rotate(-135deg); }
+
+.hint {
+  font-size: 11.5px; color: var(--label-2); text-align: center;
+  min-height: 1em; padding-inline: 4px; line-height: 1.4;
+}
+.hint:empty { display: none; }
+
+/* When there is no YouTube tab the page section has nothing true to say, so
+   it steps aside rather than showing controls that describe nowhere. */
+#page-section[hidden] { display: none; }

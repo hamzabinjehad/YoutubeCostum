@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Costum</title>
+  <link rel="stylesheet" href="../shared/apple.css">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <!-- The one thing this popover is for. It leads, at full width, and says
+       what state it is in rather than leaving the switch to imply it. -->
+  <label class="hero">
+    <span class="mark" aria-hidden="true"></span>
+    <span class="hero-text">
+      <b id="title">Costum</b>
+      <small id="state">On</small>
+    </span>
+    <span class="sw">
+      <input type="checkbox" id="master">
+      <span class="sw-track" aria-hidden="true"></span>
+    </span>
+  </label>
+
+  <main>
+    <section>
+      <div class="label" id="label-profiles">Profiles</div>
+      <div class="segmented" id="profiles" role="group"></div>
+    </section>
+
+    <section>
+      <div class="label">
+        <span id="label-speed">Speed</span>
+        <span class="label-value" id="speed-value"></span>
+      </div>
+      <div class="segmented" id="speeds" role="group"></div>
+    </section>
+
+    <section id="page-section">
+      <div class="label" id="label-page">This page</div>
+      <div class="list" id="quick"></div>
+    </section>
+  </main>
+
+  <footer>
+    <button type="button" id="open" class="settings-row">
+      <span id="open-label">All settings</span>
+      <span class="chevron" aria-hidden="true"></span>
+    </button>
+    <span class="hint" id="hint"></span>
+  </footer>
+
+  <script src="../../common/defaults.js"></script>
+  <script src="../../common/css.js"></script>
+  <script src="../../common/store.js"></script>
+  <script src="../../common/lock.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
