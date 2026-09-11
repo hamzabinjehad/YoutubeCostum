@@ -1,15 +1,50 @@
 /* The toolbar popover. Tokens and the control primitives come from
    ../shared/apple.css; this file is only the popover's own layout. */
 
+/* A popover is a fixed pane, not a document that grows. Safari sizes the window
+   to the tallest content it has seen and will not shrink it again, so a popup
+   that let its body grow ended up with a transparent dead zone below the
+   content once a shorter view was shown. Fixed height, one scrolling region
+   inside it — the header and the footer button stay put, which is also how
+   every macOS popover behaves. */
 body {
   width: 340px;
+  height: 560px;
+  overflow: hidden;
   background: var(--bg);
-  font-size: 13px; line-height: 1.45;
+  font-size: var(--t-body); line-height: 1.45;
   display: flex; flex-direction: column;
+  padding: 0; gap: 0;
 }
 
-/* ---- the state card ---- */
-body { padding: 14px; gap: 0; }
+.scroll {
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 14px 14px;
+  scrollbar-width: thin;
+}
+.scroll::-webkit-scrollbar { width: 8px; }
+.scroll::-webkit-scrollbar-thumb {
+  background: var(--fill-2, rgba(120,120,128,.28)); border-radius: 4px;
+  border: 2px solid transparent; background-clip: content-box;
+}
+.scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* The header and the search field are outside the scroll region. */
+.hero { margin: 14px 14px 0; }
+
+/* Search is pinned under the header. It costs 44px of the pane and saves a
+   scroll and seventeen tab stops on the way to any of 238 settings. */
+.search-bar { flex: 0 0 auto; padding: 10px 14px 8px; }
+.search-bar .search { margin: 0; }
+#drill { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+#drill > .drill-head { flex: 0 0 auto; }
+footer.pinned {
+  flex: 0 0 auto; padding: 8px 14px 14px;
+  border-block-start: .5px solid var(--separator);
+  background: var(--bg);
+}
 
 .hero {
   display: flex; align-items: center; gap: 12px;
@@ -21,9 +56,9 @@ body { padding: 14px; gap: 0; }
 }
 .hero:hover { background: color-mix(in srgb, var(--bg-raised) 92%, var(--label)); }
 .hero-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.hero-text b { font-family: var(--font-display); font-size: 16px; font-weight: 590; letter-spacing: -.016em; }
+.hero-text b { font-family: var(--font-display); font-size: var(--t-title); font-weight: 590; letter-spacing: -.016em; }
 .hero-text small {
-  font-size: 12.5px; color: var(--label-2); margin-block-start: 1px;
+  font-size: var(--t-caption); color: var(--label-2); margin-block-start: 1px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* On means the accent; off should read as off at a glance, not just quieter. */
@@ -56,8 +91,8 @@ section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 18
 /* Apple sets group headers in small caps grey above the group, not inside it. */
 .label {
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-  font-size: 11px; font-weight: 600; letter-spacing: .05em;
-  text-transform: uppercase; color: var(--label-2);
+  font-size: var(--t-caption); font-weight: 590; letter-spacing: 0;
+  color: var(--label-2);
   padding-inline: 2px;
 }
 /* The six presets are a shortcut, not the whole range — the panel and the
@@ -69,36 +104,71 @@ section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 18
 }
 
 /* ---- the page rows ---- */
-.list-row .row-label { color: var(--label); min-width: 0; }
+/* The label takes the slack so it sits against its icon and the count and
+   chevron stay on the trailing edge — space-between alone would strand the
+   label in the middle of the row. */
+.list-row .row-label { color: var(--label); min-width: 0; flex: 1 1 auto; }
+/* Bigger than the settings rail: a 44px row can carry it, and at this size the
+   colour is what you navigate by. */
+.list-row .tab-icon { --icon: 27px; }
+/* Settings labels wrap; they do not truncate. A row is 44px tall and a second
+   line costs 12 of them, while "Hide banners — New to you," with the rest cut
+   off costs the user the ability to know what the switch does. Eight labels
+   across six surfaces were being clipped this way. */
 .list-row .row-label span {
-  display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  display: block; overflow-wrap: break-word;
 }
 .list-row .row-label small {
-  display: block; font-size: 11.5px; color: var(--label-2); margin-block-start: 1px;
+  display: block; font-size: var(--t-caption); color: var(--label-2); margin-block-start: 1px;
 }
 
 /* ---- footer ---- */
-footer { padding: 0; display: flex; flex-direction: column; gap: 10px; }
+footer { padding: 0; display: flex; flex-direction: column; gap: 8px; }
+footer .label { margin-block-start: 8px; }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { flex: 1 1 auto; }
+.confirm {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px; border-radius: var(--r-list);
+  background: var(--bg-raised); box-shadow: var(--shadow-card);
+}
+.confirm .hint { text-align: start; }
+
+/* One recommendation leads; the rest open when asked, or on their own when one
+   of them is the profile in force. */
+#more-profiles > summary {
+  list-style: none; cursor: pointer;
+  font-size: var(--t-body); color: var(--accent-text);
+  padding: 6px 2px;
+}
+#more-profiles > summary::-webkit-details-marker { display: none; }
+#more-profiles > summary:hover { text-decoration: underline; text-underline-offset: 3px; }
+#more-profiles[open] > summary { color: var(--label-2); }
+#profiles-rest { margin-block-start: 2px; }
 .settings-row {
   display: flex; align-items: center; justify-content: space-between;
   width: 100%; min-height: 40px; padding: 9px 14px;
   border: 0; border-radius: var(--r-list); cursor: pointer;
   background: var(--bg-raised); box-shadow: var(--shadow-card);
-  color: var(--label); font: inherit; font-size: 13px;
+  color: var(--label); font: inherit; font-size: var(--t-body);
   transition: background var(--dur-fast) var(--ease);
 }
 .settings-row:hover { background: var(--fill-3); }
 .settings-row:active { background: var(--fill-2); }
+/* Two borders rotated into an arrowhead. The borders are deliberately physical
+   rather than logical: a logical pair flips itself in RTL, and with the flipped
+   rotation below that is two mirrorings on top of each other, which left the
+   arrow pointing at the floor in Arabic. One mechanism does the mirroring. */
 .chevron {
   width: 7px; height: 7px; flex: 0 0 auto;
-  border-inline-end: 1.8px solid var(--label-3);
-  border-block-start: 1.8px solid var(--label-3);
+  border-right: 1.8px solid var(--label-3);
+  border-top: 1.8px solid var(--label-3);
   transform: rotate(45deg);
 }
 body[dir="rtl"] .chevron { transform: rotate(-135deg); }
 
 .hint {
-  font-size: 11.5px; color: var(--label-2); text-align: center;
+  font-size: var(--t-caption); color: var(--label-2); text-align: center;
   min-height: 1em; padding-inline: 4px; line-height: 1.4;
 }
 .hint:empty { display: none; }
@@ -106,3 +176,144 @@ body[dir="rtl"] .chevron { transform: rotate(-135deg); }
 /* When there is no YouTube tab the page section has nothing true to say, so
    it steps aside rather than showing controls that describe nowhere. */
 #page-section[hidden] { display: none; }
+
+/* ---- the second level ---- */
+.drill-head {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 12px 8px;
+  position: sticky; top: 0; z-index: 2;
+  background: var(--bg); border-bottom: .5px solid var(--separator);
+}
+/* The surface keeps its mark after you go in, so the header answers "where am
+   I" the same way the row you tapped did. */
+.drill-head b {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--t-title); font-weight: 590; letter-spacing: -.01em;
+}
+.drill-head .tab-icon { --icon: 21px; }
+button.back {
+  display: inline-flex; align-items: center; gap: 2px;
+  font: inherit; font-size: var(--t-body); color: var(--accent-text);
+  background: none; border: 0; padding: 4px 2px; cursor: pointer;
+}
+/* The chevron is two borders rotated into an arrowhead, so a back arrow is
+   another rotation of the same shape — not a flip of it. `rotate(180deg)`
+   replaced the base 45° instead of adding to it, which left the borders on the
+   opposite two sides: a corner, not an arrow. */
+.back-chevron { transform: rotate(-135deg); }
+body[dir="rtl"] .back-chevron { transform: rotate(45deg); }
+button.back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+
+#drill-body { padding: 4px 12px 8px; display: flex; flex-direction: column; gap: 14px; }
+#drill-body .group-title {
+  font-size: var(--t-caption); font-weight: 590; letter-spacing: 0;
+  color: var(--label-2);
+  padding: 8px 4px 2px;
+}
+#drill-body .list { margin: 0; }
+#drill-body .note {
+  font-size: var(--t-caption); color: var(--label-2); line-height: 1.4;
+  padding: 6px 4px 0;
+}
+
+/* A control that needs the full width sits under its label rather than beside
+   it — at this width a six-way segmented control has nowhere else to go. */
+.stack-row {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 11px 12px;
+  border-block-end: .5px solid var(--separator);
+}
+.stack-row:last-child { border-block-end: 0; }
+.stack-row .row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.stack-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+
+/* ---- the typed controls ----
+   Everything here is full width under its label: at 340px a box beside a label
+   leaves neither of them usable, which is what the four-line labels and the
+   19px-wide ones were. */
+.stack-row input[type="text"],
+.stack-row input[type="password"],
+.stack-row input[type="time"],
+.stack-row textarea {
+  width: 100%; box-sizing: border-box;
+  font: inherit; font-size: var(--t-body);
+}
+.stack-row textarea { min-height: 76px; resize: vertical; line-height: 1.45; }
+/* Monospaced, but not smaller: you type in it. */
+.stack-row textarea.code { font-family: var(--mono); }
+.row-note { display: block; font-size: var(--t-caption); color: var(--label-2); }
+.row-note.danger { color: var(--danger); }
+.row-note:empty { display: none; }
+
+.check-list { display: flex; flex-direction: column; gap: 8px; }
+.check-list .check {
+  display: flex; align-items: center; gap: 8px;
+  font-size: var(--t-body); cursor: pointer;
+}
+.check-list input[type="checkbox"] { accent-color: var(--accent); margin: 0; flex: 0 0 auto; }
+
+/* The password fields appear under the button that asked for them, rather than
+   in a modal the popover has no room for. */
+.inline-form { display: flex; flex-direction: column; gap: 8px; }
+
+.keycap {
+  align-self: flex-start;
+  font: inherit; font-size: var(--t-body); font-variant-numeric: tabular-nums;
+  padding: 6px 12px; min-height: 32px;
+  border: .5px solid var(--hairline); border-radius: var(--r-control);
+  background: var(--bg-raised); color: var(--label); cursor: pointer;
+}
+.keycap.unset { color: var(--label-2); }
+.keycap:hover { background: var(--fill-3); }
+.keycap:active { background: var(--fill-2); }
+.keycap[data-recording] { border-color: var(--accent); color: var(--accent-text); }
+
+.check-list .check:hover { color: var(--label); }
+.check-list .check:hover span { text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: var(--label-3); }
+.stack-row textarea:hover, .stack-row input:hover { border-color: var(--label-3); }
+.row-value { font-size: var(--t-body); color: var(--label-2); font-variant-numeric: tabular-nums; }
+/* A label and a segmented control share a line when they both fit, and the
+   control drops to its own full-width line when they do not. Flexbox decides
+   that by measuring, which is the point: the old rule guessed from the number
+   of options — "more than three will not fit" — and three did not fit, nor did
+   two. Nothing here has a threshold to get wrong. */
+.list-row:has(.segmented) { flex-wrap: wrap; row-gap: 8px; }
+.list-row .segmented { flex: 0 1 auto; }
+/* On its own line it fills the width; beside a label it stays its own size. */
+.list-row:has(.segmented) > .row-label { flex: 1 1 auto; }
+.list-row:has(.segmented) > .segmented:not(:first-child) { flex-grow: 1; }
+
+/* The UA stylesheet gives [hidden] display:none, but any author `display` beats
+   it — and every section here sets one. Without this the drill-down rendered
+   underneath the root list instead of replacing it. */
+[hidden] { display: none !important; }
+
+/* ---- search ---- */
+#surfaces .search { padding: 0 12px 8px; }
+#surfaces .search input {
+  width: 100%; font: inherit; font-size: var(--t-body);
+  padding: 8px 11px; border-radius: 9px;
+  border: .5px solid var(--separator); background: var(--bg-raised); color: var(--label);
+}
+#surfaces .search input::placeholder { color: var(--label-2); }
+#surfaces .search input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+/* Which surfaces you have changed, without opening any of them. */
+.row-count {
+  font-size: var(--t-caption); color: var(--label-2);
+  font-variant-numeric: tabular-nums; flex: 0 0 auto;
+}
+.row-count[data-on] { color: var(--accent-text); font-weight: 590; }
+.result-where {
+  display: block; font-size: var(--t-caption); color: var(--label-2); margin-block-start: 1px;
+}
+
+#drill-body .group-title {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+}
+#drill-body .group-count {
+  font-size: var(--t-caption); color: var(--label-2);
+  font-variant-numeric: tabular-nums; letter-spacing: 0; text-transform: none;
+}
+#drill-body .group-count[data-on] { color: var(--accent-text); font-weight: 590; }

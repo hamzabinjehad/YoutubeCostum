@@ -142,6 +142,9 @@
    * silently: too broad a one redirects the whole site. */
   const { HOME_RULE_ID, homeRedirectPath, homeRedirectRule } = self.CostumDefaults;
 
+  /* Matches the rule_resources id in the manifest; a test pins the pair. */
+  const ADS_RULESET = 'ads';
+
   async function syncHomeRedirect(settings) {
     if (!api.declarativeNetRequest) return;
     const rule = homeRedirectRule(settings);
@@ -170,6 +173,32 @@
     }
   }
 
+  /* ---- ad request blocking, via the static ruleset ----------------------
+   * The rules ship in rules/ads.json, declared disabled in the manifest, and
+   * this is what turns them on. `updateEnabledRulesets` is the form Safari
+   * supports — `updateDynamicRules` is not implemented there, which is why the
+   * home redirect above needs its content-script fallback and this does not.
+   *
+   * The switch was in the settings page for a while with nothing behind it:
+   * this function was called in three places and never defined, so every
+   * settings change threw in the background and nothing was blocked. */
+  async function syncAdRules(settings) {
+    const dnr = api.declarativeNetRequest;
+    if (!dnr || !dnr.updateEnabledRulesets) return;
+    const wanted = !!(settings && settings.playback && settings.playback.blockAdRequests);
+    try {
+      const enabled = dnr.getEnabledRulesets ? await dnr.getEnabledRulesets() : [];
+      const already = enabled.indexOf(ADS_RULESET) !== -1;
+      if (already === wanted) return;
+      await dnr.updateEnabledRulesets(wanted
+        ? { enableRulesetIds: [ADS_RULESET] }
+        : { disableRulesetIds: [ADS_RULESET] });
+      note('info', 'syncAdRules', wanted ? 'enabled' : 'disabled');
+    } catch (e) {
+      note('error', 'syncAdRules', e);
+    }
+  }
+
   /* ---- message desk ----------------------------------------------------- */
   const handlers = {
     'settings.get': () => readSettings(),
@@ -191,8 +220,7 @@
       } catch (e) {
         return { supported: true, error: String(e) };
       }
-    },
-    'options.open': () => api.runtime.openOptionsPage()
+    }
   };
 
   api.runtime.onMessage.addListener((msg, sender, sendResponse) => {

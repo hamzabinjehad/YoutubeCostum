@@ -31,7 +31,11 @@
      is 3:1, and under the 4.5:1 that blue *text* on a light ground needs. So
      surfaces keep Apple's blue and text takes a darker one. On a dark ground
      the lighter blue already clears AA, so there the two are the same. */
-  --accent-text: #0071E3;
+  /* The accent, adjusted for use as text rather than as a filled control.
+     A filled switch carries its own contrast; a word does not. Measured on the
+     grouped background it sits on, #0071E3 came out at 4.21:1 — under AA —
+     which is where the state line and the "settings on" counts are set. */
+  --accent-text: #006ADB;
   --danger: var(--red);
 
   /* ---- semantic labels ---- */
@@ -65,14 +69,17 @@
   --shadow-sheet: 0 24px 60px rgba(0, 0, 0, .22), 0 0 0 .5px rgba(0, 0, 0, .06);
 
   /* ---- metrics ---- */
-  --r-list: 10px;
+  --r-list: 14px;
   --r-control: 8px;
   --r-sheet: 14px;
   --r-pill: 980px;
 
   /* Apple's sheet curve: quick to leave, slow to land. */
   --ease: cubic-bezier(.32, .72, 0, 1);
-  --dur: .3s;
+  /* A settings surface is somewhere you are working, not somewhere you are
+     being shown something: transitions stay inside the 150–250ms a person in
+     flow does not notice. 300ms was long enough to feel like choreography. */
+  --dur: .24s;
   --dur-fast: .18s;
 
   /* -apple-system asks the OS for San Francisco, which is how SF Pro is used
@@ -81,6 +88,26 @@
      Display at or above it. Safari picks automatically; naming Display keeps
      headings correct in the Chrome build too. */
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+
+  /* ---- type scale ----
+     Four steps, and a rule for which one to reach for: caption is secondary
+     text you read, body is anything you read or operate, title names a screen.
+     There were eleven sizes between 9px and 16px before this, with the same
+     job done at 11.5px in one place and 12.5px in another — close enough that
+     no step read as a step, which is a hierarchy in name only.
+
+     11/13/15 are Apple's own steps at this density rather than a wider
+     typographic ratio: this is a settings surface, and the system's own dense
+     UI is set exactly here.
+
+     The floor is deliberate. Nothing interactive is ever set at caption size —
+     a control you have to squint at is a control you get wrong — so caption is
+     for text that is only read, and everything you click, type in or press is
+     body at minimum. */
+  --t-caption: 11px;
+  --t-body: 13px;
+  --t-title: 15px;
+  --t-display: 28px;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
   --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "Geeza Pro", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
@@ -89,7 +116,10 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --blue: #0A84FF;
-    --accent-text: #0A84FF;
+    /* Dark mode had simply repeated the standard system blue here, so the
+       adjustment this token exists to make was never made: 3.82:1 on the
+       raised surface. This is Apple's own accessible blue for dark. */
+    --accent-text: #409CFF;
     --green: #30D158;
     --red: #FF453A;
     --orange: #FF9F0A;
@@ -137,6 +167,13 @@ body {
   margin: 0;
 }
 body[dir="rtl"] { font-family: var(--font-ar); }
+
+/* ---- the surfaces the design does not draw ----
+   Selection, the caret and the scrollbar ship with browser defaults that belong
+   to no design system, and they are the parts a page gives itself away on.
+   Themed from the same palette as everything else. */
+::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+input, textarea { caret-color: var(--accent); }
 
 /* Apple's focus ring: the accent at reduced opacity, outside the control. */
 :focus { outline: none; }
@@ -222,9 +259,16 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
   background: var(--fill-1); border-radius: 9px;
 }
 .segmented button {
-  flex: 1 1 0; min-width: 0;
+  /* `flex-basis: 0` sized every button to the same width regardless of its
+     label, so a wide one ("Show normally", 99px) was handed a 60px box and,
+     with nothing clipping it, drew its text straight over its neighbour. Basis
+     auto means each button asks for the room its own label needs, and the
+     control asks for the sum. If the control is squeezed anyway it clips with
+     an ellipsis: a truncated label is honest, overlapping text is broken. */
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis;
   border: 0; background: none; color: var(--label);
-  font: inherit; font-size: 12.5px; line-height: 1.4;
+  font: inherit; font-size: var(--t-body); line-height: 1.4;
   padding: 5px 6px; border-radius: 7px; cursor: pointer;
   font-variant-numeric: tabular-nums; white-space: nowrap;
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
@@ -256,6 +300,21 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
   position: relative; cursor: pointer;
   transition: background var(--dur-fast) var(--ease);
 }
+
+/* ---- the surface tiles ----
+   A rounded square of system colour with the glyph knocked out in white, the
+   way Settings marks a row. The size is a variable because the same tile sits
+   in a 20px rail and a 44px list row, and scaling it by one number keeps the
+   corner radius and the glyph in proportion rather than needing a second rule. */
+.tab-icon {
+  --icon: 20px;
+  flex: 0 0 auto; width: var(--icon); height: var(--icon);
+  border-radius: calc(var(--icon) * .26);
+  background: var(--tint, var(--gray));
+  display: grid; place-items: center;
+  box-shadow: inset 0 .5px 0 rgba(255, 255, 255, .28);
+}
+.tab-icon svg { width: 65%; height: 65%; display: block; color: #FFFFFF; }
 .list-row + .list-row::before {
   content: ""; position: absolute; inset-block-start: 0;
   inset-inline: 14px 0; height: .5px; background: var(--separator);
@@ -265,7 +324,7 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 
 /* ------------------------------------------------------------- buttons ---- */
 .btn {
-  font: inherit; font-size: 13px; cursor: pointer;
+  font: inherit; font-size: var(--t-body); cursor: pointer;
   border: 0; border-radius: var(--r-control);
   padding: 7px 14px; color: var(--label);
   background: var(--fill-1);
@@ -282,7 +341,7 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 /* --------------------------------------------------------- text inputs ---- */
 input[type="text"], input[type="password"], input[type="time"],
 input[type="search"], select, textarea {
-  font: inherit; font-size: 13px; color: var(--label);
+  font: inherit; font-size: var(--t-body); color: var(--label);
   background: var(--bg-raised);
   border: .5px solid var(--separator); border-radius: 6px;
   padding: 5px 9px;

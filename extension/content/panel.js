@@ -29,6 +29,7 @@
       shot: 'Frame', pip: 'PiP', summarize: 'Summarize',
       loopA: 'Loop A', loopB: 'Loop B', loopOff: 'Clear loop',
       settings: 'All settings', reset: 'Reset to default',
+      settingsWhere: 'Every setting lives in the Costum icon in the toolbar',
       recommended: 'Recommended', study: 'Study', music: 'Music', evening: 'Evening',
       skipAds: 'Skip ads', block30: 'Block 30 min', cover: 'Cover people',
       undoHint: 'Tap again to put your own settings back',
@@ -53,6 +54,7 @@
       shot: 'لقطة', pip: 'PiP', summarize: 'تلخيص',
       loopA: 'حلقة أ', loopB: 'حلقة ب', loopOff: 'مسح الحلقة',
       settings: 'كل الإعدادات', reset: 'إرجاع للأصل',
+      settingsWhere: 'كل الإعدادات موجودة بأيقونة Costum بشريط الأدوات',
       recommended: 'الموصى به', study: 'دراسة', music: 'موسيقى', evening: 'سهرة',
       skipAds: 'تخطي الإعلانات', block30: 'احظر ٣٠ دقيقة', cover: 'تغطية الصور',
       undoHint: 'اضغط مرة تانية لترجيع إعداداتك',
@@ -314,6 +316,7 @@
   }
 
   .foot { padding: 0 16px; }
+  .foot-note { display: block; font-size: 11px; color: var(--dim); line-height: 1.4; }
   .link {
     background: none; border: 0; color: var(--accent-text); cursor: pointer;
     font-size: 13px; padding: 8px 2px; text-align: start; width: 100%;
@@ -344,9 +347,16 @@
   [data-corner$="right"] .fab,
   [data-corner$="right"] .panel,
   [data-corner$="right"] .toast { right: max(16px, env(safe-area-inset-right)); }
+  /* And the guide rail owns the left, the same way the masthead owns the top —
+     which nothing accounted for, so a button parked at top-left sat on top of
+     YouTube's own navigation and covered its labels. --rail is measured at
+     runtime because that rail is 72px collapsed, about 240px open, and absent
+     on the mobile layout. */
   [data-corner$="left"] .fab,
   [data-corner$="left"] .panel,
-  [data-corner$="left"] .toast { left: max(16px, env(safe-area-inset-left)); }
+  [data-corner$="left"] .toast {
+    left: max(calc(var(--rail, 0px) + 16px), env(safe-area-inset-left));
+  }
 
   [data-corner^="bottom"] .fab { bottom: calc(18px + env(safe-area-inset-bottom)); }
   [data-corner^="bottom"] .panel,
@@ -729,8 +739,12 @@
         segment(L.evening, s.profile === 'evening', () => applyProfile('evening'), L.undoHint)
       ])),
 
+      /* There is no separate settings page to open any more: everything lives
+         in the popover behind the toolbar icon, and an extension cannot open
+         its own popover from inside the page. So this says where to go rather
+         than pretending it can take you there. */
       el('div', { class: 'foot' }, [
-        el('button', { class: 'link', type: 'button', text: L.settings, onclick: () => ctx.ask('options.open', {}) })
+        el('span', { class: 'foot-note', text: L.settingsWhere })
       ])
     ]);
 
@@ -863,6 +877,23 @@
     toastTimer = setTimeout(() => els.toast.removeAttribute('show'), 1400);
   }
 
+  /* How much of the left edge YouTube's own navigation is using right now. */
+  /* Only a rail actually pinned to the left edge counts. An overlay drawer that
+     has slid away still has a box, but a negative left — treating that as space
+     to avoid would push the button into the middle of the page. Pure, so the
+     rule can be checked without a layout. */
+  function railWidth(box) {
+    if (!box || !box.width) return 0;
+    if (box.left > 1 || box.right <= 0) return 0;
+    return Math.round(box.right);
+  }
+
+  function measureRail() {
+    if (!host) return;
+    const rail = document.querySelector('tp-yt-app-drawer#guide[opened], ytd-mini-guide-renderer');
+    host.style.setProperty('--rail', railWidth(rail && rail.getBoundingClientRect()) + 'px');
+  }
+
   function init(context) {
     if (shadow) return;
     ctx = context;
@@ -884,10 +915,18 @@
     document.documentElement.appendChild(host);
     watchForDismiss();
     applyChrome();
+    measureRail();
+    window.addEventListener('resize', measureRail);
+    window.addEventListener('costum:navigate', measureRail);
     window.addEventListener('costum:settings', () => render());
     window.addEventListener('costum:navigate', () => render());
   }
 
   self.CostumPanel = { init, toast, showSummary, toggleOpen };
-  self.Costum.register({ name: 'panel', actions: { togglePanel: () => toggleOpen() } });
+  self.CostumPanelInternals = { railWidth };
+  self.Costum.register({
+    name: 'panel',
+    apply() { measureRail(); },
+    onMutation() { measureRail(); },
+    actions: { togglePanel: () => toggleOpen() } });
 })();

@@ -213,6 +213,15 @@ Object.keys(C.DECLUTTER).forEach(function (g) {
 ok('every setting has a rule behind it — selectors, or a declared style rule',
    missing.length === 0, missing.join(', '));
 
+/* Probed on live youtube.com: the consent wall renders as a direct child of
+   ytd-app, so the wrapped `ytd-popup-container tp-yt-paper-dialog:has(...)`
+   form matched nothing and the switch hid no consent dialog at all. Keeping
+   the bare tag pinned is the difference between a switch that works and one
+   that only looks like it does. */
+ok('hiding popups reaches the consent wall by its own tag',
+   C.DECLUTTER.global.popups.indexOf('ytd-consent-bump-v2-lightbox') !== -1,
+   C.DECLUTTER.global.popups.join(', '));
+
 ok('no setting claims to be style-only without a style rule to show for it',
    Object.keys(C.STYLE_ONLY).every(function (g) {
      return C.STYLE_ONLY[g].every(function (k) {
@@ -400,6 +409,74 @@ ok('a count in the middle is left alone', T.stripCount('Song (3) live') === 'Son
 ok('nothing in, nothing out', T.stripCount('') === '' && T.stripCount(null) === '');
 ok('stripping twice changes nothing',
    T.stripCount(T.stripCount('(3) Video')) === 'Video');
+
+// ---- undoing a whole-group flip ----
+/* Applying a profile has always been undoable; flipping a group of thirty-three
+   switches was not, though it displaces far more. Both use the same pair:
+   pluck what is about to be overwritten, merge it back to restore. */
+var groupPaths = ['declutter.sidebar.home', 'declutter.sidebar.shortsButton', 'declutter.sidebar.history'];
+var handSet = D.merge(base, { declutter: { sidebar: { shortsButton: true } } });
+var displaced = D.pluck(handSet, groupPaths);
+
+ok('what gets kept is only the paths the flip will touch',
+   Object.keys(displaced).length === 1 && Object.keys(displaced.declutter.sidebar).length === 3);
+ok('and it holds the values as they were',
+   displaced.declutter.sidebar.shortsButton === true &&
+   displaced.declutter.sidebar.home === false);
+
+var flipped = handSet;
+groupPaths.forEach(function (path) {
+  flipped = D.merge(flipped, path.split('.').reverse().reduce(function (acc, k) {
+    var step = {}; step[k] = acc; return step;
+  }, true));
+});
+ok('the flip turns the whole group on',
+   groupPaths.every(function (p) { return p.split('.').reduce(function (o, k) { return o[k]; }, flipped) === true; }));
+
+var undone = D.merge(flipped, displaced);
+ok('undo restores exactly what was there, not the defaults',
+   undone.declutter.sidebar.shortsButton === true &&
+   undone.declutter.sidebar.home === false &&
+   undone.declutter.sidebar.history === false);
+ok('undo leaves settings outside the group alone',
+   undone.playback.defaultSpeed === base.playback.defaultSpeed);
+
+// ---- grid layout, driven through YouTube's own custom properties ----
+ok('the grid is untouched by default',
+   base.layout.feedWidth === 0 && base.layout.cardMinWidth === 0 &&
+   base.layout.rowGap === 0 && base.layout.relatedLimit === 0);
+ok('nothing about the grid is emitted at defaults',
+   C.buildLayoutCss(base).indexOf('--ytd-rich-grid') === -1);
+
+var wide = C.buildLayoutCss(D.merge(base, { layout: { feedWidth: 1200 } }));
+ok('a width cap sets YouTube own max-width variable',
+   wide.indexOf('--ytd-rich-grid-content-max-width: 1200px') !== -1, wide);
+var big = C.buildLayoutCss(D.merge(base, { layout: { cardMinWidth: 400 } }));
+ok('a card floor sets the min-width variable',
+   big.indexOf('--ytd-rich-grid-item-min-width: 400px') !== -1);
+var airy = C.buildLayoutCss(D.merge(base, { layout: { rowGap: 48 } }));
+ok('row spacing sets the row margin variable',
+   airy.indexOf('--ytd-rich-grid-row-margin: 48px') !== -1);
+ok('three settings at once share one rule block',
+   C.buildLayoutCss(D.merge(base, { layout: { feedWidth: 1200, cardMinWidth: 400, rowGap: 48 } }))
+     .split('ytd-rich-grid-renderer {').length === 2);
+
+// ---- the floating button has to clear YouTube own navigation ----
+scope.Costum = { register: function () {}, modules: [] };
+scope.CostumCss = C;
+new Function('self', read(ROOT + 'content/panel.js'))(scope);
+var Panel = scope.CostumPanelInternals;
+
+ok('a collapsed rail against the left edge is space to avoid',
+   Panel.railWidth({ width: 72, left: 0, right: 72 }) === 72);
+ok('an open drawer is wider, and still counted',
+   Panel.railWidth({ width: 240, left: 0, right: 240 }) === 240);
+ok('a drawer slid off-screen is not counted',
+   Panel.railWidth({ width: 240, left: -240, right: 0 }) === 0);
+ok('a drawer floating away from the edge is not counted',
+   Panel.railWidth({ width: 240, left: 300, right: 540 }) === 0);
+ok('no rail at all means no offset', Panel.railWidth(null) === 0);
+ok('a zero-width rail means no offset', Panel.railWidth({ width: 0, left: 0, right: 0 }) === 0);
 
 // ---- the custom stylesheet ----
 ok('no custom CSS by default', base.declutter.customCss === '');

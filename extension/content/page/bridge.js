@@ -77,6 +77,21 @@
 
   const player = () => document.getElementById('movie_player');
 
+  /* Which world this file actually ended up in. It is injected as a script tag
+     so it should be the page's, but "should be" is what diagnostics exists to
+     stop trusting: in an isolated world the DOM looks identical while none of
+     the page's own JavaScript is reachable, and forced quality, codec choice
+     and captions all quietly do nothing.
+     The player element is the honest test — the same object this file already
+     calls getVideoData on. When there is no player to ask, it says so rather
+     than guessing, and diagnostics only warns on a definite 'isolated'. */
+  function world() {
+    const p = player();
+    if (p && typeof p.getVideoData === 'function') return 'page';
+    if (typeof window.ytcfg !== 'undefined' || typeof window.yt !== 'undefined') return 'page';
+    return p ? 'isolated' : 'unknown';
+  }
+
   /* Measured on a live player, and the two directions behave differently:
    *
    *   lowering — setPlaybackQualityRange() works on its own. The adaptive

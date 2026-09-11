@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "low-contrast",
+        "value": "*",
+        "files": [
+          "extension/ui/popup/popup.html"
+        ],
+        "createdAt": "2026-09-05T13:04:22.019Z",
+        "reason": "The detector reads the stylesheet as one flat palette, so it pairs light-mode :root values — and the prefers-contrast:more overrides — with dark-mode backgrounds. Three of the four hits are --separator, a hairline, not text. Ground truth: every text node on every surface measured in the browser in both themes with alpha composited against what is behind it, zero failures, and tests/style-slop.py pins the accent-text pairs. Re-check by hand if the palette changes."
+      }
+    ]
+  }
+}

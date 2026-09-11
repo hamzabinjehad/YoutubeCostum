@@ -80,11 +80,23 @@ suite rather than the other browser.
 ./scripts/test.sh
 ```
 
-Three checks: every extension file parses, every setting in the options spec is
+Seven checks. Every extension file parses. Every setting in the options spec is
 declared exactly once (the same switch on two surfaces is a real bug — the copies
-disagree on sight), and the settings model and CSS builders behave —
-the logic that decides behaviour before any DOM exists. It runs on the
-JavaScriptCore that ships with macOS, so there is nothing to install.
+disagree on sight). The settings model and CSS builders behave, which is the
+logic that decides behaviour before any DOM exists. Every setting is wired to
+something — a selector in `css.js` under its own page, or a module that reads
+it — because a switch the settings page draws and no code reads is worse than a
+missing feature: it looks like it works. Every function that is called is
+defined somewhere, which sounds like something the parser would catch and is
+not: a bare call to a name that was never declared parses cleanly and throws
+only when the line runs. And the UI contracts hold:
+the agreements *between* a page's markup, its script and its copy decks — a
+script reaching for an element id the HTML does not define, a string key used in
+one language and missing in the other, a control type in the spec that no
+renderer draws, a group heading colliding with a surface name. Each of those is
+a mistake that was actually made here, and each fails silently in a browser
+rather than throwing. It all runs on the JavaScriptCore that ships with macOS,
+so there is nothing to install.
 
 What it cannot cover: anything that needs a real page. Those parts are verified
 in Safari by hand — except the two HTML surfaces, which have their own harness:
@@ -93,11 +105,304 @@ in Safari by hand — except the two HTML surfaces, which have their own harness
 ./scripts/harness.sh
 ```
 
+`?lang=ar` and `?path=/results` seed the locale and the pretend active tab before
+the page reads them, which is the only way to check the Arabic layout or a
+page-scoped control without clicking through the UI to set it up first.
+
 That serves the popup and the settings page as ordinary web pages with the
 extension APIs stubbed, so their layout and logic can be checked without
 installing into Safari and enabling an unsigned extension. Storage is in memory
 and the "active tab" is a fake `/watch` URL, which is enough to exercise the
 page-scoped controls.
+
+### Icons
+
+Each of the nineteen surfaces carries a tinted rounded square, in the popup list
+and in the settings rail, from `extension/ui/shared/icons.js`. They are drawn
+here rather than taken from SF Symbols: Apple licenses that font for use in app
+UI on its platforms, not for redistribution inside an extension bundle, and web
+content cannot reach the system symbol glyphs in any case. So they follow the
+same drawing rules instead — a 24-unit square, one stroke weight, round caps and
+joins — over the system colour palette. One list for both surfaces: they used to
+keep their own, and only one of them had icons at all.
+
+### Interaction tests
+
+Behaviour is the part neither suite above can reach: whether drilling into a
+surface and coming back puts you where you were, whether a group flip can
+actually be undone, whether search escapes the tab you are looking at. Open the
+popup or the settings page from the harness and, in the console:
+
+```js
+const src = await (await fetch('/ui-browser.js')).text();
+(0, eval)(src);
+await CostumUiTests.run();
+```
+
+Thirty-two assertions, and they run in either language — the queries and group names
+are read off the page instead of written into the test, so `?lang=ar` exercises
+the same paths rather than falling over on an English string. An early version
+did hardcode them, and the Arabic run failed on the test rather than on the code.
+
+Two things this suite taught, both worth keeping:
+
+**Prove a test can fail before trusting it.** Each behaviour here was broken on
+purpose in the `.harness` copy, with the real source untouched, to confirm the
+right assertion goes red and says something useful (`0 vs 240`). One of them did
+not — a green run against a knowingly broken build — because the browser was
+still holding the previous copy of the script. The harness now serves everything
+`no-store` for that reason. A stale asset that turns a red test green is worse
+than having no test at all.
+
+**A test that cannot fail is not coverage.** Returning from a search result
+restores the scroll position on its own, because that path never empties the
+list. Asserting it there would pass whether or not the code that does it exists.
+It is left unasserted rather than counted.
+
+### One surface
+
+There is no settings page. The popover behind the toolbar icon draws all 238
+settings, every control type included — text, lists, times, the keyboard
+shortcut recorder, the sponsor-category checkboxes, the custom stylesheet, the
+API key, the settings password. Eleven of them used to hand over to a separate
+full page, which meant the popover was a shortcut to the product rather than the
+product.
+
+Two things inside the YouTube page used to open that page — the panel's footer
+link and the summary's "no API key yet" path. An extension cannot open its own
+popover from a content script, so both now say where to go instead of jumping
+somewhere that no longer exists.
+
+The password is set and removed in place: the old page opened a modal, and a
+340px popover has nowhere to put one, so the fields appear under the button that
+asked for them. The full cycle is verified — set, reject a wrong one, remove.
+
+`tests/ui-contract.py` now fails if the spec declares a control type the popup
+cannot draw. With nowhere to hand a setting off to, an unhandled type is a
+setting with nowhere to be changed.
+
+### Type scale
+
+Four steps, declared once in `shared/apple.css` and used by name: caption
+(11px), body (13px), title (15px), display (28px). The rule for choosing is
+that caption is for text you only read, and anything you click, type in or
+press is body at minimum — a control you have to squint at is a control you
+get wrong.
+
+Before this there were eleven sizes between 9px and 16px. Each was reasonable
+where it was written and the set was invisible: a description was 11.5px in the
+popup, 12px in one part of the settings page and 12.5px in another, doing the
+same job. Steps that close are not a hierarchy, they are one size rendered
+inconsistently. 11/13/15 are the system's own steps at this density rather than
+a wider typographic ratio — this is a settings surface, and the platform sets
+its dense UI exactly there.
+
+`tests/style-slop.py` keeps it: a raw pixel `font-size` anywhere outside the
+`:root` declaration fails, as does caption size on anything interactive. It
+also carries the subset of the [impeccable.style](https://impeccable.style)
+detector vocabulary that applies to a settings surface and is decidable from
+the stylesheet — the side-tab accent border, over-rounded cards, gradient text,
+purple gradients, transitions on layout properties, easing that overshoots,
+anything animating forever. The landing-page rules in that vocabulary (hero
+eyebrows, italic serif display headlines, hero metric rows) have no counterpart
+here and are not pretended at.
+
+Its first run reported three findings and two were its own fault: it judged a
+whole selector rather than the element the selector actually styles, so
+`.list-row .row-label small` counted as interactive because a row is. It now
+reads the subject of each selector.
+
+### Contrast
+
+The accent is two colours, not one. `--accent` fills a switch, which carries its
+own contrast; `--accent-text` is the same idea adjusted for words, which do not.
+The token existed and dark mode had not used it — it repeated the standard
+system blue, which measures **3.82:1** on the raised surface, under the 4.5:1
+that text this size needs. Light mode was **4.21:1** on the grouped background.
+Both are now measured in `tests/style-slop.py` against the surfaces they
+actually sit on.
+
+That mattered more than a number: those two colours paint the line telling you
+whether the extension is on, and the count telling you a surface has settings
+running — the two most status-bearing strings in the popup were the hardest to
+read in it. Three more places painted words with the control accent and now use
+the text one; the test fails on any `color: var(--accent)` that is not a border
+or an `accent-color`, which is a distinction it had to be taught, having first
+flagged a range slider and a checkbox.
+
+### What the critique changed
+
+`/impeccable critique` scored the popover **26/40 — Acceptable**, and the three
+P1s it named are fixed.
+
+**A way back out.** Export, import and reset lived only in the settings page and
+went with it, leaving 238 settings with no backup, no way to move them to
+another machine, and no way to undo a configuration you regret. That was the
+lowest score on the board — User Control and Freedom, 1 out of 4. All three are
+at the foot of the root list now. Reset asks in place rather than in a modal, an
+import that is not a settings file is refused rather than merged, and the result
+is reported in the footer, because a popover that closes on a file dialog cannot
+count on being open to report back.
+
+Both landed with a defect the review had not looked for, because the review
+predated them. The footer was a one-line hint before it held three buttons, and
+`render()` had never hidden it — so "Your settings — Export, Import, Reset all"
+sat under all nineteen surfaces and under every set of search results. Pinning
+search created the second: the field was reachable from inside a surface, where
+its results rendered into a hidden element, so it accepted typing and nothing
+happened. A search field you can always see has to always work, so a query now
+steps back out to the results. Both are assertions in the suite; the footer one
+was proved by putting the leak back and watching it name four surfaces.
+
+**Search was invisible.** It began 624px into a 486px viewport and sat
+**eighteen tab stops** from the first focusable element: the fastest route to any
+setting was the one thing you could neither see nor reach. It is pinned under
+the header now — visible on open, **one tab stop** away. Both numbers are
+assertions in the interaction suite.
+
+**Eighteen options before the navigation.** Four profiles, six speeds, seven page
+toggles and a master switch, all competing above the fold, against a
+working-memory limit of four. Profiles are one recommendation now, with the
+other three behind a disclosure that opens by itself when one of them is in
+force, so the screen never hides the state it is in. Down to fifteen — the rest
+is the speed row and the page list, both kept deliberately.
+
+And the finding the critique turned up that nothing else had: **`blockNow` drew
+a dead row.** "Block YouTube temporarily" rendered its own type name as a label
+and the feature could not be used. The contract check had reported that every
+declared control type had a renderer, because its regex was `[a-z]+` and could
+not see a camelCase type name — the same blind spot in two places in the same
+file. Both are fixed, the renderer is written, and the check now fails without
+it.
+
+### The polish pass
+
+Run against [impeccable](https://impeccable.style)'s own playbooks — Operate
+mode, where the tool should disappear into the task, and its craft floor. What
+it found:
+
+**The surfaces nobody draws.** Text selection and the caret shipped with browser
+defaults that belong to no design system. Both are themed from the palette now;
+the scrollbar already was. It is the cheapest tell that a page was assembled
+rather than built.
+
+**Motion above the range.** Product transitions belong in 150–250ms — a person
+in a task should not wait for choreography. The base duration was 300ms.
+
+**Controls without their states.** The keycap and the checkbox rows had no hover
+and no active state at all; they were written in this session and the states
+were simply skipped.
+
+**An empty state that shrugged.** "Nothing matches that." is the exact phrasing
+the guidance names as the failure. A search that finds nothing is the one moment
+the reader is asking for help, so it now says what kinds of words work.
+
+**Shouting section labels.** `PROFILES`, `SPEED`, `THIS PAGE` were tracked
+uppercase — the pattern the craft floor bans outright as a kicker. They stay,
+because a grouped-list header is a native affordance rather than a marketing
+eyebrow, but in sentence case: that is both what the system itself does now and
+what the ban is actually protecting against.
+
+One thing it flagged that was not a defect: spacing. The rule is more room above
+a heading than below it, and the first measurement said otherwise — because it
+measured from a section box whose bottom padding swallowed the gap. Ink to ink
+it is 18px above and 8px below, which was right all along. That measurement
+nearly bought a fix for working code.
+
+### The impeccable detector
+
+`impeccable detect` runs over `extension/ui`. It reports four low-contrast
+findings and all four are false: they pair light-mode token values — and the
+`prefers-contrast: more` overrides — with dark-mode backgrounds, because it
+reads the stylesheet as one flat set of colours rather than as themes. Three of
+the four are `--separator`, which draws hairlines and is not text at all.
+
+Rather than take either side on assertion, every text node on every surface is
+measured in the browser in both themes, with alpha composited against what is
+actually behind it: **zero failures**, in dark and in light. The vocabulary is
+worth having; its static contrast rule cannot see a media query.
+
+That exception is recorded in `.impeccable/config.json` with the reasoning and
+the instruction to re-check by hand if the palette changes, so the detector runs
+clean and a future finding means something.
+
+### What the audits found
+
+Three bugs, none of which any earlier test could see:
+
+`syncAdRules(settings)` was called in three places in the background script and
+defined in none. Every settings change and every startup threw a
+`ReferenceError`, silently, in a context with no page to notice it — while the
+"Block ad requests" switch sat in the settings page describing what it would
+do. The static ruleset it was meant to enable is declared `"enabled": false` in
+the manifest and nothing ever turned it on. It now uses `updateEnabledRulesets`,
+which is the form Safari implements, and a test pins both that and the ruleset
+id against the manifest.
+
+`world()` was called inside the page bridge's `meta()` and never defined, so
+every call for a video's title and caption tracks threw — which is everything
+the summary feature runs on.
+
+Hiding popups did not hide the consent wall. The selector assumed
+`ytd-popup-container tp-yt-paper-dialog:has(ytd-consent-bump-v2-lightbox)`;
+probed on live youtube.com the lightbox is a direct child of `ytd-app`, with
+neither wrapper above it, so it matched nothing. Live counts after the fix: 1
+against the bare tag, 0 against the wrapped form.
+
+That live pass covered 24 selector groups — the header, the sidebar and the
+global ones. The rest could not be reached from a signed-out session behind a
+consent wall, and the consent dialog was left alone rather than dismissed. Of
+the 24, none had broken syntax, ten matched, and the fourteen empty ones were
+all explained by the page state except the consent wall above.
+
+**Assertions about the DOM are not enough — nor about the DOM alone.** A
+segmented control sized every button to the same width regardless of its label,
+so "Show normally" was handed a 60px box and drew its text 39px across its
+neighbour, while the row label beside it was squeezed to 19px and broke into
+four lines. The suite reported nineteen passes through all of it: every
+assertion was about which rows existed and what they were pressed to, and none
+about where any of it landed. A control can be entirely correct and completely
+unusable.
+
+The cause was a threshold that had never been measured — the row stacked its
+control onto its own line only when a setting had *more than three* options,
+and three did not fit, nor did two. It is flexbox that decides now: the row
+wraps, and a control that cannot share a line with its label takes the next one.
+There is no number left to get wrong.
+
+The suite now walks all nineteen surfaces and fails on any leaf whose
+`scrollWidth` exceeds its box — which catches text overflowing its element and
+text clipped to an ellipsis in the same check. It found eight more labels being
+truncated across six other surfaces; settings labels wrap now rather than cut
+off, because a row is 44px tall and a second line costs twelve of them, while
+"Hide banners — New to you," with the rest missing costs the reader the ability
+to know what the switch does.
+
+**A member call is a call.** `Lock.check(...)` parses, satisfies every check in
+the suite, and throws the moment the button is pressed — inside a listener,
+where the exception reaches nobody and nothing appears on screen. The module is
+`CostumLock` and it exports `verify`. `tests/undeclared.py` reads what each
+`root.CostumX = { … }` publishes and now checks calls made through the module or
+through a local alias bound to it. Its first version called `const clean =
+self.CostumFields.parseNumbers(…)` an alias for the module; it wants the
+reference to end there.
+
+**Sleeping is not waiting.** The overflow sweep first cost thirty-eight
+seconds and ran the suite past the runner's limit. The measuring was one
+millisecond per surface; the cost was `await wait(90)` taking 999ms, because a
+browser throttles timers in a hidden tab to about a second and the preview pane
+is a hidden tab. Drilling into a surface renders synchronously — the title and
+body are both there on the line after the click — so the sweep waits for
+nothing at all now and the run went from timing out to ten seconds. The sleeps
+were never buying anything; they were only paying for themselves.
+
+**Assertions about the DOM are not enough.** An exception thrown inside an event
+listener never reaches the code that dispatched the event — the browser catches
+it, logs it, and carries on. A render function that called itself blew the stack
+on every keystroke in the search field, and the suite reported eighteen passes,
+because the rows had been appended before the overflow and were still there once
+it unwound. The suite now listens for `error` and `unhandledrejection` for the
+whole run and fails if the page raised anything at all.
 
 ## How a feature is wired
 
@@ -148,6 +453,97 @@ Three rules hold the design together:
    Safari on iOS.
 3. **A module that throws gets logged and skipped**, never taking the rest down.
    YouTube reshuffles its DOM often; one broken selector should cost one feature.
+
+## One-line bug worth writing down
+
+The chevron is two borders rotated 45° into an arrowhead. The back button asked
+for `rotate(180deg)`, which *replaced* that 45° rather than adding to it — so
+the borders ended up on the opposite two sides and drew a corner, `└`, instead
+of an arrow. The RTL rule had the same shape of mistake with `transform: none`.
+A transform on a shape that is already rotated is another rotation of it, not a
+flip of it: back is `rotate(-135deg)`, and `rotate(45deg)` in RTL.
+
+## Undoing things
+
+Applying a profile has always been undoable — `profileUndo` keeps what the
+profile displaced, and keeps the *first* one when you switch straight from one
+profile to another, so going back reaches what you had rather than the last
+profile's values.
+
+Flipping a whole group had none of that, though it displaces far more: thirty-three
+sidebar entries in one press. It uses the same pair now — `pluck` what is about
+to be overwritten, merge it back to restore — and the group's own button becomes
+Undo until something else changes. Verified by hand as well as in the suite: two
+entries set by hand, the group flipped to all twenty-two, then undo returning
+exactly those two.
+
+## Laying out the feed
+
+YouTube sizes its own grid from custom properties, and they are readable from
+the page — verified live, set and reverted:
+
+    --ytd-rich-grid-items-per-row        4
+    --ytd-rich-grid-content-max-width    calc(4*(700px + 16px) - 16px)
+    --ytd-rich-grid-item-min-width       310px
+    --ytd-rich-grid-row-margin           32px
+
+So feed width, smallest card, column count and row spacing all work *through*
+its layout engine rather than against it with widths of our own — which is what
+makes this kind of setting survive a redesign instead of breaking on it.
+
+Two things were inconsistent and are not any more. Columns applied to every grid
+feed while rows only applied on the home page, so the same pair of controls
+behaved differently depending on which feed you were looking at; both reach any
+page that renders the grid now. And the watch page's related column is a list
+rather than a grid, so its cap counts items instead of measuring where rows fall.
+
+## Where the floating button sits
+
+The panel button can live in any of the four corners, and the CSS already knew
+that YouTube's masthead owns the top — the top corners start below it rather
+than under it. Nothing said the same about the left, so a button parked at
+top-left sat on YouTube's own guide rail and covered its labels.
+
+The left inset now clears whatever rail is actually there, measured at runtime
+because it is about 72px collapsed, about 240px open, and absent on the mobile
+layout. `railWidth()` is pure and tested: a drawer that has slid off-screen
+still has a box, but a negative left, and treating that as space to avoid would
+push the button into the middle of the page.
+
+## The popover is the product
+
+Clicking the toolbar icon used to give a handful of quick controls and a link
+that threw you into a separate page — which meant leaving the video to change
+anything real. Minimal Theme for Twitter never does that: its popover *is* the
+settings. Ours is the same now, with a second level, because nineteen surfaces
+and two hundred and forty-five settings do not fit in one scrolling column the
+way forty do. The root lists the surfaces; tapping one pushes it over the top,
+with a back button, in the same popover.
+
+That needed the settings spec to stop living inside the settings page.
+`common/spec.js` holds it now — every setting's path, control type and label in
+both languages — plus the surface names, which had been part of the page's own
+copy deck. The popover had been guessing a surface's name from its first group
+heading, which called the player "Speed" and gave two different surfaces the
+same name, "The feed".
+
+The popover is a fixed 340×560 pane with one scrolling region inside it, not a
+document that grows. That is not a style choice: Safari sizes the popup window
+to the tallest content it has ever rendered and never shrinks it again, so
+letting the body grow left a transparent dead zone below the content as soon as
+a shorter view was shown — the root list is tall, a small surface is not. A
+fixed height with the header and the one action pinned outside the scroll region
+is also simply how a macOS popover behaves.
+
+The popover carries the same three things the settings page does, because at
+nineteen surfaces none of them is optional: a search that cuts across every
+surface and says which one each hit came from, a count on each surface row so
+the list shows where you have switched things on, and a back button that returns
+you to where you were in the list rather than to the top of it.
+
+A handful of controls stay on the full page and say so: the CSS box, keyboard
+shortcut capture, the password, the timed block. They need room or a keyboard,
+and squeezing them into a 320px column badly would be worse than handing over.
 
 ## The two entry points
 
@@ -233,11 +629,27 @@ so it is worth reading rather than guessing at. Three of its ideas are in here:
   YouTube equivalent is the `(3)` prefix, a notification badge in the one place
   notifications cannot be turned off. Stripping it is a pure function with seven
   tests, including the case that matters: `(Official Video) Song` is not a count.
+- **A grid instead of a column.** Their left-navigation section is a grid of
+  tappable icons, not fifteen rows of "Hide X". The sidebar's twenty-two entries
+  are chips now: struck through means gone, and at the settings page's own width
+  they occupy three rows rather than twenty-two. A group opts in with
+  `{ heading: true, dense: true }`, and only plain switches with no explanatory
+  hint qualify — a chip has nowhere to put a sentence.
+- **Room to breathe.** Their rows are 44px with a 15px label; ours were 36px and
+  13.5px, sized for density. At two hundred and forty-five rows density reads as
+  a spreadsheet, so the rows and type now match theirs and the card radius went
+  from 10px to 14px.
+- **A short list of choices is visible, not hidden in a menu.** Four options or
+  fewer render as a segmented control, so all of them can be read without
+  opening anything. Eight quality levels stay a dropdown, because a segmented
+  control that wraps is worse than a menu.
 - **Two control shapes carrying meaning** — a switch turns a behaviour on, a
   checkbox ticks something off a list of removals. Ours are all switches, on
   purpose: Safari draws no pseudo-elements on form controls, so the drawn switch
-  is what renders reliably there. Worth revisiting only if the visual distinction
-  turns out to matter more than the consistency.
+  is what renders reliably there — so the removals are a tick *button* rather
+  than a checkbox input, which sidesteps that limitation and keeps the
+  distinction: a switch turns a behaviour on, a tick takes something off the
+  page.
 
 ## Forcing a quality
 

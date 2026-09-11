@@ -1,7 +1,6 @@
 #!/bin/bash
-# Runs the extension's three surfaces — the popup, the settings page and the
-# in-page panel — as plain web pages, with the browser-extension APIs stubbed
-# out.
+# Runs the extension's two surfaces — the popup and the in-page panel — as
+# plain web pages, with the browser-extension APIs stubbed out.
 #
 # This is how they get checked without installing into Safari, enabling an
 # unsigned extension, and clicking through a browser. Storage lives in memory
@@ -17,16 +16,25 @@ PORT="${1:-8765}"
 
 rm -rf "$OUT"
 mkdir -p "$OUT"
-cp "$ROOT/extension/common/"{defaults.js,css.js,store.js,lock.js} "$OUT/"
+cp "$ROOT/extension/common/"{defaults.js,css.js,spec.js,store.js,lock.js,fields.js} "$OUT/"
 cp "$ROOT/extension/ui/popup/"{popup.js,popup.css} "$OUT/"
-cp "$ROOT/extension/ui/options/"{options.js,options.css} "$OUT/"
-cp "$ROOT/extension/ui/shared/apple.css" "$OUT/"
+cp "$ROOT/extension/ui/shared/"{apple.css,icons.js} "$OUT/"
 cp "$ROOT/extension/content/panel.js" "$OUT/"
 cp "$ROOT/extension/content/modules/focus.js" "$OUT/"
 cp "$ROOT/extension/content/modules/diagnostics.js" "$OUT/"
+# Linked rather than copied: a copy goes stale the moment a test is edited, and
+# then the suite that runs is not the suite on disk. Served but not linked into
+# the pages — it loads on demand from the console, so a surface can still be
+# looked at by hand without tests running underneath it.
+ln -sf "$ROOT/tests/ui-browser.js" "$OUT/ui-browser.js"
 
 STUB='<script>
-  const memory = {};
+  /* Seed state before the page reads it, so a locale or a preset can be tested
+     without clicking through the UI first: ?lang=ar, ?path=/watch. */
+  const params = new URLSearchParams(location.search);
+  const memory = params.get("lang")
+    ? { settings: { locale: params.get("lang") } }
+    : {};
   self.browser = {
     storage: {
       local: {
@@ -35,18 +43,19 @@ STUB='<script>
       },
       onChanged: { addListener() {} }
     },
-    tabs: { query: () => Promise.resolve([{ url: "https://www.youtube.com/watch?v=demo" }]) },
-    runtime: { openOptionsPage() { location.href = "options.html"; } }
+    tabs: { query: () => Promise.resolve([{ url: "https://www.youtube.com" + (params.get("path") || "/watch?v=demo") }]) },
+    runtime: {}
   };
 </script>'
 
 python3 - "$ROOT" "$OUT" "$STUB" <<'PY'
 import sys, os
 root, out, stub = sys.argv[1], sys.argv[2], sys.argv[3]
-for src, dest in [('ui/popup/popup.html', 'index.html'), ('ui/options/options.html', 'options.html')]:
+for src, dest in [('ui/popup/popup.html', 'index.html')]:
     html = open(os.path.join(root, 'extension', src)).read()
     html = html.replace('src="../../common/', 'src="')
     html = html.replace('href="../shared/', 'href="')
+    html = html.replace('src="../shared/', 'src="')
     html = html.replace('  <script src="defaults.js"></script>', stub + '\n  <script src="defaults.js"></script>')
     open(os.path.join(out, dest), 'w').write(html)
 PY
@@ -210,8 +219,26 @@ HTML
 
 echo "Harness built in .harness/"
 echo "  popup:    http://localhost:$PORT/index.html"
-echo "  settings: http://localhost:$PORT/options.html"
 echo "  panel:    http://localhost:$PORT/panel.html"
 echo "  focus:    http://localhost:$PORT/focus.html"
 echo
-cd "$OUT" && exec /usr/bin/python3 -m http.server "$PORT"
+echo "  interaction tests, in the popup's console:"
+echo "    (0,eval)(await (await fetch('/ui-browser.js')).text()); await CostumUiTests.run()"
+echo
+# Caching off. A stale script silently turns a red test green: a deliberately
+# broken build once passed the whole interaction suite because the browser was
+# still running the previous copy, which is the one failure mode that makes a
+# test suite worse than none.
+cd "$OUT" && exec /usr/bin/python3 - "$PORT" <<'PY'
+import sys
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+
+
+class NoCache(SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header('Cache-Control', 'no-store, must-revalidate')
+        SimpleHTTPRequestHandler.end_headers(self)
+
+
+ThreadingHTTPServer(('', int(sys.argv[1])), NoCache).serve_forever()
+PY

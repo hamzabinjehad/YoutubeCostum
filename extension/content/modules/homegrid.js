@@ -9,6 +9,13 @@
   const ITEM = 'ytd-rich-item-renderer, ytm-rich-item-renderer';
   const MARK = 'costum-row-clipped';
 
+  /* Columns applied everywhere a grid appears, rows only on the home page —
+     the same control behaving differently depending on which feed you were
+     looking at. Any page that renders the grid gets both now. */
+  function onGridFeed() {
+    return !!document.querySelector('ytd-rich-grid-renderer, ytm-rich-grid-renderer');
+  }
+
   function onHome() {
     const path = location.pathname;
     return path === '/' || path === '';
@@ -50,7 +57,7 @@
 
   function apply(s) {
     const limit = s.layout.homeRows;
-    if (!limit || limit < 1 || !onHome()) {
+    if (!limit || limit < 1 || !onGridFeed()) {
       if (document.querySelector('[' + MARK + ']')) restore();
       return;
     }
@@ -73,9 +80,40 @@
     }, Math.max(0, 300 - (Date.now() - ran)));
   }
 
+  /* The watch page's related column is a list, not a grid, so it is capped by
+     counting rather than by measuring where rows fall. */
+  const RELATED_MARK = 'costum-related-clipped';
+
+  function clipRelated(limit) {
+    const holder = document.querySelector('#related ytd-item-section-renderer, #related');
+    if (!holder) return;
+    const items = [...holder.querySelectorAll('yt-lockup-view-model, ytd-compact-video-renderer')];
+    items.forEach((item, index) => {
+      const over = index >= limit;
+      if (over === item.hasAttribute(RELATED_MARK)) return;
+      item.toggleAttribute(RELATED_MARK, over);
+      if (over) item.style.setProperty('display', 'none', 'important');
+      else item.style.removeProperty('display');
+    });
+  }
+
+  function restoreRelated() {
+    document.querySelectorAll('[' + RELATED_MARK + ']').forEach((item) => {
+      item.removeAttribute(RELATED_MARK);
+      item.style.removeProperty('display');
+    });
+  }
+
   Costum.register({
     name: 'homeGrid',
-    apply(s) { apply(s); },
-    onMutation(nodes, s) { if (s.layout.homeRows > 0) applySoon(s); }
+    apply(s) {
+      apply(s);
+      if (s.layout.relatedLimit > 0) clipRelated(s.layout.relatedLimit);
+      else restoreRelated();
+    },
+    onMutation(nodes, s) {
+      if (s.layout.homeRows > 0) applySoon(s);
+      if (s.layout.relatedLimit > 0) clipRelated(s.layout.relatedLimit);
+    }
   });
 })();

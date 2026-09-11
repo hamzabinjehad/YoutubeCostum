@@ -52,7 +52,11 @@
       miniOnScroll: false,
       hideScrollbar: false,
       homeColumns: 0,        // 0 = YouTube's own responsive count
-      homeRows: 0            // 0 = however many rows YouTube wants to load
+      homeRows: 0,           // 0 = however many rows YouTube wants to load
+      feedWidth: 0,          // px cap on the grid; 0 = full width
+      cardMinWidth: 0,       // px floor on a card; bigger means fewer, larger
+      rowGap: 0,             // px between rows; 0 = YouTube's 32
+      relatedLimit: 0        // how many related videos to keep; 0 = all
     },
 
     /* Grouped by the YouTube page each control acts on, because that is how
@@ -573,7 +577,7 @@
 
   root.CostumDefaults = {
     DEFAULTS, PROFILES, withDefaults, merge, applyProfile, loopTarget,
-    DEVICE_ONLY, forSync, fromSync, formatShortcut, sharpenKernel, revertProfile,
+    DEVICE_ONLY, forSync, fromSync, formatShortcut, sharpenKernel, revertProfile, pluck,
     HOME_RULE_ID, homeRedirectPath, homeRedirectRule
   };
 })(typeof self !== 'undefined' ? self : this);

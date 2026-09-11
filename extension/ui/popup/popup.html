@@ -21,10 +21,26 @@
     </span>
   </label>
 
+  <!-- Pinned. Search is the fast path to any of 238 settings, and it used to
+       start 624px into a 486px viewport — invisible until you scrolled, and
+       eighteen tab stops away by keyboard. -->
+  <div class="search-bar">
+    <div class="search">
+      <input type="search" id="search" autocomplete="off" spellcheck="false">
+    </div>
+  </div>
+
+  <div class="scroll" id="scroll">
   <main>
+    <!-- One recommendation, and the rest behind a disclosure. Four equal chips
+         put four decisions in front of someone who mostly wants the first. -->
     <section>
       <div class="label" id="label-profiles">Profiles</div>
       <div class="segmented" id="profiles" role="group"></div>
+      <details id="more-profiles">
+        <summary id="more-profiles-label">Other profiles</summary>
+        <div class="segmented" id="profiles-rest" role="group"></div>
+      </details>
     </section>
 
     <section>
@@ -41,18 +57,58 @@
     </section>
   </main>
 
-  <footer>
-    <button type="button" id="open" class="settings-row">
-      <span id="open-label">All settings</span>
-      <span class="chevron" aria-hidden="true"></span>
-    </button>
+  <!-- Every surface lives here too, so the popover is the whole product and
+       not a shortcut to somewhere else. -->
+  <section id="surfaces">
+    <div class="label" id="label-all">All settings</div>
+    <div class="list" id="surface-list"></div>
+    <div class="list" id="search-results" hidden></div>
+    <p class="hint" id="no-hits" hidden></p>
+  </section>
+
+  <!-- The root list's own footer. It is not part of a surface, and it is not
+       part of a set of search results. -->
+  <footer id="root-footer">
+    <div class="label" id="label-yours">Your settings</div>
+    <div class="btn-row">
+      <button type="button" class="btn" id="export">Export</button>
+      <button type="button" class="btn" id="import">Import</button>
+      <button type="button" class="btn danger" id="reset">Reset all</button>
+    </div>
+    <!-- Reset asks in place. A popover has no room for a modal, and a modal is
+         the first thought rather than the right one. -->
+    <div class="confirm" id="reset-confirm" hidden>
+      <p class="hint" id="reset-body"></p>
+      <div class="btn-row">
+        <button type="button" class="btn danger" id="reset-go">Reset</button>
+        <button type="button" class="btn" id="reset-cancel">Cancel</button>
+      </div>
+    </div>
     <span class="hint" id="hint"></span>
   </footer>
+  </div>
+
+  <!-- The second level. Same popover, pushed across. -->
+  <div id="drill" hidden>
+    <header class="drill-head">
+      <button type="button" id="back" class="back" aria-label="Back">
+        <span class="chevron back-chevron" aria-hidden="true"></span>
+        <span id="back-label">Back</span>
+      </button>
+      <b id="drill-title"></b>
+    </header>
+    <div class="scroll" id="drill-scroll">
+      <div id="drill-body"></div>
+    </div>
+  </div>
 
   <script src="../../common/defaults.js"></script>
   <script src="../../common/css.js"></script>
+  <script src="../../common/spec.js"></script>
   <script src="../../common/store.js"></script>
   <script src="../../common/lock.js"></script>
+  <script src="../../common/fields.js"></script>
+  <script src="../shared/icons.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

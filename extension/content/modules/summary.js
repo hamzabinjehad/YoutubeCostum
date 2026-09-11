@@ -36,10 +36,11 @@
 
   async function run(ctx) {
     const s = ctx.settings();
-    if (!s.summary.enabled) return ctx.toast('Turn on summaries in settings');
+    if (!s.summary.enabled) return ctx.toast('Turn on summaries from the Costum icon in the toolbar');
     if (!s.summary.apiKey) {
-      ctx.ask('options.open', {});
-      return ctx.toast('Add your Claude API key in settings');
+      // Nowhere to send them programmatically now that the popover is the only
+      // surface, so the message carries the direction instead of a dead jump.
+      return ctx.toast('Add your Claude API key from the Costum icon in the toolbar');
     }
 
     ctx.panel.showSummary({ state: 'loading' });

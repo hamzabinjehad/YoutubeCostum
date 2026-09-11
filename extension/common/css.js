@@ -63,6 +63,11 @@
         'ytd-mealbar-promo-renderer',
         'yt-mealbar-promo-renderer',
         'ytd-inline-survey-renderer',
+        /* The consent wall is a direct child of ytd-app — no popup container and
+           no paper-dialog above it. Probed live: the wrapped form below matched
+           nothing, so the switch looked fine and hid no consent dialog at all.
+           The wrapped one stays for layouts that still nest it. */
+        'ytd-consent-bump-v2-lightbox',
         'ytd-popup-container tp-yt-paper-dialog:has(ytd-consent-bump-v2-lightbox)',
         'tp-yt-paper-dialog:has(ytd-enforcement-message-view-model)',
         'ytd-button-renderer#dismiss-button ~ *'
@@ -528,6 +533,16 @@
     if (header.logoLink) {
       out.push('ytd-topbar-logo-renderer a { pointer-events: none !important; cursor: default !important; }');
     }
+
+    /* YouTube sizes its own grid from a handful of custom properties, and they
+     * are readable from the page — so the whole of this works with its layout
+     * engine rather than against it. Fighting it with widths is what makes
+     * these settings break on the next redesign. */
+    const grid = [];
+    if (l.feedWidth > 0) grid.push('  --ytd-rich-grid-content-max-width: ' + l.feedWidth + 'px !important;');
+    if (l.cardMinWidth > 0) grid.push('  --ytd-rich-grid-item-min-width: ' + l.cardMinWidth + 'px !important;');
+    if (l.rowGap > 0) grid.push('  --ytd-rich-grid-row-margin: ' + l.rowGap + 'px !important;');
+    if (grid.length) out.push('ytd-rich-grid-renderer {\n' + grid.join('\n') + '\n}');
 
     if (l.homeColumns > 0) {
       // YouTube sizes its own grid from this variable, so setting it keeps the

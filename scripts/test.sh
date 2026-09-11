@@ -15,5 +15,21 @@ echo "Settings spec:"
 COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/spec-paths.py"
 
 echo
+echo "Setting wiring:"
+COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/wiring.py"
+
+echo
+echo "Undefined calls:"
+COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/undeclared.py"
+
+echo
+echo "UI contracts:"
+COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/ui-contract.py"
+
+echo
+echo "Style:"
+COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/style-slop.py"
+
+echo
 echo "Logic:"
 COSTUM_ROOT="$ROOT" osascript -l JavaScript "$ROOT/tests/logic.js"

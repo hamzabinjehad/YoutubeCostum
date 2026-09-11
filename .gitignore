@@ -13,3 +13,15 @@ extension.crx
 # Stray clones of this same repo that ended up inside it.
 /YoutubeCostum/
 /YoutubeCustomizer/
+
+# Editor and agent tooling installed per machine. impeccable ships a 14MB
+# platform binary into each of these; the install is `npx impeccable install`,
+# not something to carry in the repo.
+.agents/
+.claude/
+.codex/
+.cursor/
+
+# Chrome compiles the declarativeNetRequest rules here when it loads the
+# unpacked extension. Build output, regenerated on every load.
+extension/_metadata/
