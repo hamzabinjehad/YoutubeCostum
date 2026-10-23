@@ -290,8 +290,9 @@
     },
 
     block: {
-      keywords: [],
-      channels: [],
+      keywords: [],          // title contains — text matching
+      channels: [],          // channel name contains — text matching
+      exactChannels: [],     // a channel id (UC…), an @handle, or a whole channel name
       regex: '',
       hideWatched: false
     },
@@ -334,10 +335,22 @@
       pip: 'Shift+KeyP',
       loopStart: 'Shift+BracketLeft',
       loopEnd: 'Shift+BracketRight',
-      summarize: 'Shift+KeyM'
+      summarize: 'Shift+KeyM',
+      bookmark: 'Shift+KeyB'
     },
 
-    panel: { showButton: true, corner: 'bottom-right' }
+    panel: { showButton: true, corner: 'bottom-right' },
+
+    /* Modes you saved yourself, beside the four built in. Each holds only
+       what differed from the defaults when it was saved — see MODE_SCOPE. */
+    customModes: [],       // [{ id, name, patch, createdAt, updatedAt }]
+
+    /* Per-channel preferences, keyed by the channel's stable id (UC…) or, when
+       that is not on the page, its @handle. Never by display name alone: names
+       collide and change. Each entry carries the parts it overrides — a
+       speed, the sound settings, the watch-page clutter switches — and nothing
+       else. See withChannel for how they combine with everything else. */
+    channelPrefs: {}       // { [channelId]: { name, speed, audio, watch, updatedAt } }
   };
 
   const PROFILES = {
@@ -371,8 +384,16 @@
     return out;
   }
 
+  /* Model ids that were offered once and have since been renamed by the
+     provider. Read forward here so a stored choice keeps working and the
+     select in the popover still has something to point at. Ids are exact
+     strings from Anthropic's model table — never built by hand. */
+  const MODEL_ALIASES = { 'claude-haiku-4-5-20251001': 'claude-haiku-4-5' };
+
   function withDefaults(stored) {
-    return merge(DEFAULTS, stored || {});
+    const out = merge(DEFAULTS, stored || {});
+    if (out.summary && MODEL_ALIASES[out.summary.model]) out.summary = merge(out.summary, { model: MODEL_ALIASES[out.summary.model] });
+    return out;
   }
 
   /* Every leaf path a patch touches. */
@@ -410,7 +431,7 @@
      
      So a profile now records what it displaced, and deselecting restores it. */
   function applyProfile(settings, name) {
-    const patch = PROFILES[name];
+    const patch = modePatch(settings, name);
     if (!patch) return revertProfile(settings);
 
     // Switching straight from one profile to another keeps the *first* undo:
@@ -420,6 +441,173 @@
     const before = merge(displaced, isPlainObject(settings.profileUndo) ? settings.profileUndo : {});
 
     return merge(merge(settings, patch), { profile: name, profileUndo: before });
+  }
+
+  /* ---- modes of your own -------------------------------------------------
+   *
+   * What a saved mode is about: the preferences that describe a way of
+   * watching. Not the master switch, not credentials, not the focus lock or
+   * schedule, not shortcuts, not where the panel sits — those are about the
+   * device and the person, and a mode called "Lectures" has no business
+   * changing them. The A–B loop is left out too: it belongs to one video. */
+  const MODE_SCOPE = ['playback', 'audio', 'picture', 'layout', 'declutter', 'modesty', 'block', 'sponsors'];
+  const MODE_SKIP = { 'playback.loop': true };
+
+  function scopePaths() {
+    return leafPaths(pluck(DEFAULTS, MODE_SCOPE.map((key) => key)), '')
+      .filter((path) => !Object.keys(MODE_SKIP).some((skip) => path === skip || path.startsWith(skip + '.')));
+  }
+
+  /* pluck() works on leaf paths; a group name has to be expanded first. */
+  function scopeOf(settings) {
+    const groups = {};
+    MODE_SCOPE.forEach((key) => { groups[key] = settings[key]; });
+    const out = pluck(groups, scopePaths());
+    return out;
+  }
+
+  /* Only the leaves that differ from the defaults, so a mode stays small and
+     survives a release that adds settings: anything the mode does not name is
+     "as shipped". */
+  function modeDiff(settings) {
+    const now = scopeOf(settings);
+    const base = scopeOf(DEFAULTS);
+    return pluck(now, diffPaths(base, now));
+  }
+
+  /* The full patch a mode applies: back to the defaults for everything in
+     scope, then the mode's own values on top. Built-in modes are partial on
+     purpose — Study says nothing about brightness — and stay that way. */
+  function modePatch(settings, name) {
+    if (PROFILES[name]) return PROFILES[name];
+    const mode = customMode(settings, name);
+    if (!mode) return null;
+    return merge(scopeOf(DEFAULTS), mode.patch || {});
+  }
+
+  const CUSTOM_PREFIX = 'custom:';
+  function customMode(settings, name) {
+    if (!name || !name.startsWith(CUSTOM_PREFIX)) return null;
+    const id = name.slice(CUSTOM_PREFIX.length);
+    return (settings.customModes || []).find((mode) => mode.id === id) || null;
+  }
+
+  function modeId() {
+    return 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  function cleanName(name) {
+    return String(name || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+  }
+
+  /* Save what is on screen as a mode. Saving makes it the active mode with
+     nothing to undo — it *is* the current configuration. Updating an existing
+     mode (by id) keeps its name and identity. */
+  function saveCustomMode(settings, name, id) {
+    const modes = (settings.customModes || []).slice();
+    const label = cleanName(name);
+    if (!label) return settings;
+    const patch = modeDiff(settings);
+    const now = Date.now();
+    const index = id ? modes.findIndex((mode) => mode.id === id) : -1;
+    if (index === -1) {
+      id = modeId();
+      modes.push({ id, name: label, patch, createdAt: now, updatedAt: now });
+    } else {
+      modes[index] = Object.assign({}, modes[index], { name: modes[index].name, patch, updatedAt: now });
+    }
+    return merge(settings, { customModes: modes, profile: CUSTOM_PREFIX + id, profileUndo: null });
+  }
+
+  function renameCustomMode(settings, id, name) {
+    const label = cleanName(name);
+    if (!label) return settings;
+    return merge(settings, {
+      customModes: (settings.customModes || []).map((mode) => (mode.id === id ? Object.assign({}, mode, { name: label }) : mode))
+    });
+  }
+
+  function duplicateCustomMode(settings, id) {
+    const source = (settings.customModes || []).find((mode) => mode.id === id);
+    if (!source) return settings;
+    const now = Date.now();
+    const copy = Object.assign({}, source, { id: modeId(), name: cleanName(source.name + ' 2'), createdAt: now, updatedAt: now });
+    return merge(settings, { customModes: (settings.customModes || []).concat([copy]) });
+  }
+
+  /* Deleting the active mode leaves the settings exactly as they are: the
+     definition is gone, not the configuration. Only the label clears. */
+  function deleteCustomMode(settings, id) {
+    const next = merge(settings, { customModes: (settings.customModes || []).filter((mode) => mode.id !== id) });
+    return settings.profile === CUSTOM_PREFIX + id ? merge(next, { profile: 'default', profileUndo: null }) : next;
+  }
+
+  /* What applying a mode would change, before it does — the leaf paths. */
+  function modePreview(settings, name) {
+    if (!modePatch(settings, name)) return [];
+    return diffPaths(settings, applyProfile(settings, name))
+      .filter((path) => path !== 'profile' && path !== 'profileUndo');
+  }
+
+  /* ---- one channel, its own way --------------------------------------------
+   *
+   * Precedence, highest first:
+   *   1. a temporary adjustment on the video being watched (a speed nudge);
+   *      that lives in the playback module, not here;
+   *   2. this channel's saved preferences;
+   *   3. the active mode and global preferences.
+   *
+   * The master switch, credentials, the focus lock and the settings password
+   * are not preferences and no override can reach them: withChannel touches
+   * only the three groups a channel entry can carry. What comes back is a
+   * plain settings object — safe to read, never to store. */
+  const CHANNEL_WATCH_KEYS = ['comments', 'related', 'liveChat', 'endScreens'];
+  const CHANNEL_AUDIO_KEYS = ['boost', 'bass', 'normalize', 'monoDownmix'];
+
+  function channelPrefsOf(settings, channelId) {
+    const prefs = channelId && settings && settings.channelPrefs && settings.channelPrefs[channelId];
+    return isPlainObject(prefs) ? prefs : null;
+  }
+
+  function withChannel(settings, channelId) {
+    const prefs = channelPrefsOf(settings, channelId);
+    if (!prefs) return settings;
+    const patch = {};
+    if (Number(prefs.speed) > 0) patch.playback = { defaultSpeed: Number(prefs.speed) };
+    if (isPlainObject(prefs.audio)) {
+      patch.audio = {};
+      CHANNEL_AUDIO_KEYS.forEach((key) => { if (key in prefs.audio) patch.audio[key] = prefs.audio[key]; });
+    }
+    if (isPlainObject(prefs.watch)) {
+      patch.declutter = { watch: {} };
+      CHANNEL_WATCH_KEYS.forEach((key) => { if (key in prefs.watch) patch.declutter.watch[key] = !!prefs.watch[key]; });
+    }
+    return merge(settings, patch);
+  }
+
+  /* A channel entry is written as a whole, and removed when nothing is left
+     in it, so an empty entry never lingers as "this channel has preferences". */
+  function setChannelPrefs(settings, channelId, name, patch) {
+    if (!channelId) return settings;
+    const current = Object.assign({}, channelPrefsOf(settings, channelId) || {});
+    const next = Object.assign(current, patch, { name: cleanName(name || current.name), updatedAt: Date.now() });
+    ['speed', 'audio', 'watch'].forEach((key) => { if (next[key] === null || next[key] === undefined || next[key] === 0) delete next[key]; });
+    const all = Object.assign({}, settings.channelPrefs);
+    if (next.speed === undefined && next.audio === undefined && next.watch === undefined) delete all[channelId];
+    else all[channelId] = next;
+    return Object.assign({}, settings, { channelPrefs: all });
+  }
+
+  /* The stable identity of a channel, from whatever the page offers:
+     a /channel/UC… link is the id itself, an /@handle is stable enough
+     and unique, and a bare name is not accepted. */
+  function channelKey(href) {
+    const path = String(href || '');
+    const id = path.match(/\/channel\/(UC[\w-]{10,})/);
+    if (id) return id[1];
+    const handle = path.match(/\/(@[\w.-]{2,})/);
+    if (handle) return handle[1].toLowerCase();
+    return '';
   }
 
   function revertProfile(settings) {
@@ -481,6 +669,112 @@
       const patch = keys.reverse().reduce((inner, key) => ({ [key]: inner }), value);
       return merge(acc, patch);
     }, withDefaults(incoming));
+  }
+
+  /* ---- the settings file ----------------------------------------------
+   *
+   * An export is an envelope, not the bare settings object: it says what it
+   * is and which version wrote it, so a later release can migrate it and an
+   * unrelated JSON file can be refused before it is merged into anything.
+   * The device-only keys are stripped the same way they are for iCloud — a
+   * settings file gets mailed, pasted and backed up, and a billable API key
+   * has no place in it. Pure, so every rule can be checked without a browser. */
+  const EXPORT_FORMAT = 'costum-settings';
+  const EXPORT_VERSION = 1;
+
+  function packageExport(settings, app) {
+    return {
+      format: EXPORT_FORMAT,
+      version: EXPORT_VERSION,
+      exportedAt: new Date().toISOString(),
+      app: app || '',
+      settings: forSync(settings)
+    };
+  }
+
+  /* Older releases exported the bare settings object. Wrapping it is the only
+     migration so far; later versions slot in below it, each stepping the
+     envelope forward by one. */
+  function migrateImport(payload) {
+    if (isPlainObject(payload) && payload.format !== EXPORT_FORMAT && isPlainObject(payload.declutter)) {
+      payload = { format: EXPORT_FORMAT, version: 1, settings: payload };
+    }
+    return payload;
+  }
+
+  /* Walks the stored shape against DEFAULTS. A leaf whose type disagrees with
+     the default is a corrupt or hand-edited file, and one bad value is enough
+     to refuse the lot: an import either lands whole or not at all. Keys the
+     defaults do not know are listed and dropped — they are usually a setting
+     from a later release, and carrying them is harmless but pointless. */
+  const OPEN_KEYS = { profileUndo: true };
+
+  function checkShape(value, model, path, out) {
+    for (const key of Object.keys(value)) {
+      const here = path ? path + '.' + key : key;
+      if (!(key in model)) {
+        if (!path && OPEN_KEYS[key]) continue;
+        out.unknown.push(here);
+        continue;
+      }
+      const want = model[key];
+      const got = value[key];
+      if (isPlainObject(want)) {
+        if (!isPlainObject(got)) { out.invalid.push(here); continue; }
+        // An empty object in the defaults is an open map, keyed by the user.
+        if (Object.keys(want).length) checkShape(got, want, here, out);
+      } else if (Array.isArray(want)) {
+        if (!Array.isArray(got)) out.invalid.push(here);
+      } else if (want === null) {
+        if (got !== null && typeof got !== 'number' && typeof got !== 'string') out.invalid.push(here);
+      } else if (typeof got !== typeof want) {
+        out.invalid.push(here);
+      }
+    }
+  }
+
+  /* Only known keys go forward; the unknown ones are reported, not carried. */
+  function prune(value, model, top) {
+    const out = {};
+    for (const key of Object.keys(value)) {
+      if (top && OPEN_KEYS[key]) { out[key] = value[key]; continue; }
+      if (!(key in model)) continue;
+      const want = model[key];
+      out[key] = isPlainObject(want) && Object.keys(want).length && isPlainObject(value[key])
+        ? prune(value[key], want, false) : value[key];
+    }
+    return out;
+  }
+
+  function validateImport(payload) {
+    payload = migrateImport(payload);
+    if (!isPlainObject(payload) || payload.format !== EXPORT_FORMAT) return { ok: false, error: 'not-costum' };
+    const version = Number(payload.version);
+    if (!Number.isInteger(version) || version < 1) return { ok: false, error: 'not-costum' };
+    if (version > EXPORT_VERSION) return { ok: false, error: 'newer-version', version };
+    if (!isPlainObject(payload.settings)) return { ok: false, error: 'not-costum' };
+    const out = { unknown: [], invalid: [] };
+    checkShape(payload.settings, DEFAULTS, '', out);
+    if (out.invalid.length) return { ok: false, error: 'invalid-value', path: out.invalid[0], invalid: out.invalid };
+    return { ok: true, version, exportedAt: payload.exportedAt || '', app: payload.app || '', settings: prune(payload.settings, DEFAULTS, true), unknown: out.unknown.sort() };
+  }
+
+  /* Every leaf path where two settings objects disagree — what an import or a
+     mode is about to change, before it changes it. */
+  function diffPaths(a, b) {
+    const out = [];
+    const walk = (x, y, path) => {
+      const keys = new Set([].concat(Object.keys(isPlainObject(x) ? x : {}), Object.keys(isPlainObject(y) ? y : {})));
+      keys.forEach((key) => {
+        const here = path ? path + '.' + key : key;
+        const p = x == null ? undefined : x[key];
+        const q = y == null ? undefined : y[key];
+        if (isPlainObject(p) && isPlainObject(q)) walk(p, q, here);
+        else if (JSON.stringify(p) !== JSON.stringify(q)) out.push(here);
+      });
+    };
+    walk(a, b, '');
+    return out;
   }
 
   /* Shortcuts are stored as KeyboardEvent codes because that is what matching a
@@ -578,6 +872,10 @@
   root.CostumDefaults = {
     DEFAULTS, PROFILES, withDefaults, merge, applyProfile, loopTarget,
     DEVICE_ONLY, forSync, fromSync, formatShortcut, sharpenKernel, revertProfile, pluck,
-    HOME_RULE_ID, homeRedirectPath, homeRedirectRule
+    HOME_RULE_ID, homeRedirectPath, homeRedirectRule,
+    EXPORT_FORMAT, EXPORT_VERSION, packageExport, migrateImport, validateImport, diffPaths, leafPaths,
+    MODEL_ALIASES, MODE_SCOPE, CUSTOM_PREFIX, customMode, modePatch, modePreview, modeDiff,
+    saveCustomMode, renameCustomMode, duplicateCustomMode, deleteCustomMode,
+    withChannel, channelPrefsOf, setChannelPrefs, channelKey, CHANNEL_WATCH_KEYS, CHANNEL_AUDIO_KEYS
   };
 })(typeof self !== 'undefined' ? self : this);

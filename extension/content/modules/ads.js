@@ -48,7 +48,7 @@
 
   function takeOver(video) {
     if (held) return;
-    held = { muted: video.muted, rate: video.playbackRate };
+    held = { video, muted: video.muted, rate: video.playbackRate };
     video.muted = true;
     // Some ads refuse the seek; speeding up gets through those.
     try { video.playbackRate = 16; } catch (e) { /* clamped by the browser */ }
@@ -56,6 +56,7 @@
 
   function handBack(video) {
     if (!held) return;
+    video = held.video || video;
     video.muted = held.muted;
     try { video.playbackRate = held.rate; } catch (e) {}
     held = null;
@@ -78,7 +79,7 @@
 
   function sweep(ctx) {
     const s = ctx.settings();
-    if (!s.playback.skipAds) {
+    if (!s.enabled || !s.playback.skipAds) {
       const video = ctx.video();
       if (video) handBack(video);
       return;
@@ -123,6 +124,8 @@
 
   Costum.register({
     name: 'ads',
+    disable() { clearTimeout(due); due = null; if (held) handBack(held.video); },
+    onNavigate() { if (held) handBack(held.video); },
 
     apply(s, ctx) { sweep(ctx); },
 

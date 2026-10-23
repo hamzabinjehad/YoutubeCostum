@@ -4,6 +4,7 @@
   const SVG_NS = 'http://www.w3.org/2000/svg';
   const FILTER_ID = 'costum-sharpen';
 
+  const originals = new Map();
   let kernelNode = null;
   let appliedAmount = -1;
 
@@ -66,6 +67,8 @@
   }
 
   function applyTo(video, s) {
+    if (!originals.has(video)) originals.set(video, video.style.filter);
+    for (const old of originals.keys()) if (!old.isConnected) originals.delete(old);
     const value = css(s.picture, s.modesty);
     video.style.filter = value;
     // Filters on the video alone leave letterbox bars untouched, which is what we want.
@@ -73,6 +76,10 @@
 
   Costum.register({
     name: 'filters',
+    disable() {
+      originals.forEach((value, video) => { video.style.filter = value; });
+      originals.clear();
+    },
     apply(s, ctx) { const v = ctx.video(); if (v) applyTo(v, s); },
     onVideo(video, s) { applyTo(video, s); }
   });

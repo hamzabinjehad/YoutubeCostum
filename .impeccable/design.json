@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-15T18:18:28+00:00",
+  "title": "Design System: Costum for YouTube",
+  "extensions": {
+    "colorMeta": {
+      "accent": {
+        "role": "primary",
+        "displayName": "System Blue",
+        "canonical": "oklch(58% 0.21 258)",
+        "tonalRamp": [
+          "oklch(15% 0.160 258)",
+          "oklch(26% 0.160 258)",
+          "oklch(38% 0.160 258)",
+          "oklch(49% 0.160 258)",
+          "oklch(61% 0.160 258)",
+          "oklch(72% 0.160 258)",
+          "oklch(84% 0.160 258)",
+          "oklch(95% 0.160 258)"
+        ]
+      },
+      "accent-fill": {
+        "role": "primary",
+        "displayName": "Filled Blue (AA under white)",
+        "canonical": "oklch(53% 0.20 255)",
+        "tonalRamp": [
+          "oklch(15% 0.160 255)",
+          "oklch(26% 0.160 255)",
+          "oklch(38% 0.160 255)",
+          "oklch(49% 0.160 255)",
+          "oklch(61% 0.160 255)",
+          "oklch(72% 0.160 255)",
+          "oklch(84% 0.160 255)",
+          "oklch(95% 0.160 255)"
+        ]
+      },
+      "accent-text": {
+        "role": "primary",
+        "displayName": "Text Blue",
+        "canonical": "oklch(52% 0.21 257)",
+        "tonalRamp": [
+          "oklch(15% 0.160 257)",
+          "oklch(26% 0.160 257)",
+          "oklch(38% 0.160 257)",
+          "oklch(49% 0.160 257)",
+          "oklch(61% 0.160 257)",
+          "oklch(72% 0.160 257)",
+          "oklch(84% 0.160 257)",
+          "oklch(95% 0.160 257)"
+        ]
+      },
+      "red": {
+        "role": "danger",
+        "displayName": "System Red",
+        "canonical": "oklch(63% 0.24 27)",
+        "tonalRamp": [
+          "oklch(15% 0.180 27)",
+          "oklch(26% 0.180 27)",
+          "oklch(38% 0.180 27)",
+          "oklch(49% 0.180 27)",
+          "oklch(61% 0.180 27)",
+          "oklch(72% 0.180 27)",
+          "oklch(84% 0.180 27)",
+          "oklch(95% 0.180 27)"
+        ]
+      },
+      "orange": {
+        "role": "warning",
+        "displayName": "System Orange",
+        "canonical": "oklch(75% 0.18 60)",
+        "tonalRamp": [
+          "oklch(15% 0.140 60)",
+          "oklch(26% 0.140 60)",
+          "oklch(38% 0.140 60)",
+          "oklch(49% 0.140 60)",
+          "oklch(61% 0.140 60)",
+          "oklch(72% 0.140 60)",
+          "oklch(84% 0.140 60)",
+          "oklch(95% 0.140 60)"
+        ]
+      },
+      "green": {
+        "role": "success",
+        "displayName": "System Green",
+        "canonical": "oklch(75% 0.20 148)",
+        "tonalRamp": [
+          "oklch(15% 0.150 148)",
+          "oklch(26% 0.150 148)",
+          "oklch(38% 0.150 148)",
+          "oklch(49% 0.150 148)",
+          "oklch(61% 0.150 148)",
+          "oklch(72% 0.150 148)",
+          "oklch(84% 0.150 148)",
+          "oklch(95% 0.150 148)"
+        ]
+      },
+      "label": {
+        "role": "neutral",
+        "displayName": "Label",
+        "canonical": "oklch(20% 0.003 286)",
+        "tonalRamp": [
+          "oklch(15% 0.003 286)",
+          "oklch(26% 0.003 286)",
+          "oklch(38% 0.003 286)",
+          "oklch(49% 0.003 286)",
+          "oklch(61% 0.003 286)",
+          "oklch(72% 0.003 286)",
+          "oklch(84% 0.003 286)",
+          "oklch(95% 0.003 286)"
+        ]
+      },
+      "label-2": {
+        "role": "neutral",
+        "displayName": "Secondary Label (solid, AA at 11px)",
+        "canonical": "oklch(52% 0.004 286)",
+        "tonalRamp": [
+          "oklch(15% 0.004 286)",
+          "oklch(26% 0.004 286)",
+          "oklch(38% 0.004 286)",
+          "oklch(49% 0.004 286)",
+          "oklch(61% 0.004 286)",
+          "oklch(72% 0.004 286)",
+          "oklch(84% 0.004 286)",
+          "oklch(95% 0.004 286)"
+        ]
+      },
+      "bg": {
+        "role": "surface",
+        "displayName": "Grouped Background",
+        "canonical": "oklch(96% 0.005 286)",
+        "tonalRamp": [
+          "oklch(15% 0.005 286)",
+          "oklch(27% 0.005 286)",
+          "oklch(38% 0.005 286)",
+          "oklch(50% 0.005 286)",
+          "oklch(62% 0.005 286)",
+          "oklch(74% 0.005 286)",
+          "oklch(85% 0.005 286)",
+          "oklch(97% 0.005 286)"
+        ]
+      },
+      "bg-raised": {
+        "role": "surface",
+        "displayName": "Card",
+        "canonical": "oklch(100% 0 0)",
+        "tonalRamp": [
+          "oklch(15% 0.000 0)",
+          "oklch(27% 0.000 0)",
+          "oklch(39% 0.000 0)",
+          "oklch(51% 0.000 0)",
+          "oklch(64% 0.000 0)",
+          "oklch(76% 0.000 0)",
+          "oklch(88% 0.000 0)",
+          "oklch(100% 0.000 0)"
+        ]
+      },
+      "sheet": {
+        "role": "surface",
+        "displayName": "Panel Sheet (dark, .94)",
+        "canonical": "oklch(20% 0.003 286 / .94)",
+        "tonalRamp": [
+          "oklch(12% 0.003 286)",
+          "oklch(16% 0.003 286)",
+          "oklch(20% 0.003 286)",
+          "oklch(24% 0.003 286)",
+          "oklch(28% 0.003 286)",
+          "oklch(32% 0.003 286)",
+          "oklch(36% 0.003 286)",
+          "oklch(40% 0.003 286)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "title": {
+        "displayName": "Title",
+        "purpose": "Names a screen: the hero, the drill head, the Customize header."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Anything read or operated: rows, buttons, inputs, segments. The floor for interactive text."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Text that is only read: hints, scope captions, counts, notes. Never on a control."
+      },
+      "section-heading": {
+        "displayName": "Section heading",
+        "purpose": "Grey caption above a card, with the scope on its trailing edge."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-card",
+        "value": "0 0 0 .5px var(--hairline), 0 1px 1px rgba(0,0,0,.03)",
+        "purpose": "The ring around a grouped card; there is no border."
+      },
+      {
+        "name": "shadow-thumb",
+        "value": "0 3px 8px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04), 0 0 0 .5px rgba(0,0,0,.04)",
+        "purpose": "Switch knob and selected segment."
+      },
+      {
+        "name": "shadow-sheet",
+        "value": "0 24px 60px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.06)",
+        "purpose": "The popup toast and anything floating over the pane."
+      },
+      {
+        "name": "panel-sheet",
+        "value": "0 24px 60px rgba(0,0,0,.55)",
+        "purpose": "The in-page panel over YouTube."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease",
+        "value": "cubic-bezier(.32, .72, 0, 1)",
+        "purpose": "Apple's sheet curve: quick to leave, slow to land. The only easing."
+      },
+      {
+        "name": "dur",
+        "value": "240ms",
+        "purpose": "Knob travel, chevron turn, sheet entrance."
+      },
+      {
+        "name": "dur-fast",
+        "value": "180ms",
+        "purpose": "Background and colour on hover/active, toast entrance."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "transition/animation-duration .001ms; no transform on :active",
+        "purpose": "prefers-reduced-motion rail."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "popover",
+        "value": "340x560px fixed (macOS popover)"
+      },
+      {
+        "name": "phone-popup",
+        "value": "(pointer: coarse) and (max-width: 420px): body 100% x 100dvh; 44px targets under any coarse pointer"
+      },
+      {
+        "name": "phone-panel",
+        "value": "max-width: 430px: the panel becomes a bottom sheet with a grabber"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Grouped list row with switch",
+      "kind": "card",
+      "refersTo": "list-row",
+      "description": "A 44px row on a raised card; the switch is drawn on a span and the row is the control (aria-pressed).",
+      "html": "<div class=\"ds-list\"><div class=\"ds-row\" role=\"button\" tabindex=\"0\" aria-pressed=\"true\"><span class=\"ds-row-label\"><span>Hide comments</span><small>Every watch page</small></span><span class=\"ds-sw\" aria-hidden=\"true\"></span></div><div class=\"ds-row\" role=\"button\" tabindex=\"0\" aria-pressed=\"false\"><span class=\"ds-row-label\"><span>Cinema mode</span></span><span class=\"ds-sw\" aria-hidden=\"true\"></span></div></div>",
+      "css": ".ds-list{background:var(--bg-raised,#fff);border-radius:14px;box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 1px 1px rgba(0,0,0,.03);overflow:hidden;font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;color:var(--label,#1D1D1F)}.ds-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 14px;min-height:44px;position:relative;cursor:pointer;transition:background .18s cubic-bezier(.32,.72,0,1)}.ds-row+.ds-row::before{content:'';position:absolute;top:0;left:14px;right:0;height:.5px;background:rgba(60,60,67,.16)}.ds-row:hover{background:rgba(118,118,128,.05)}.ds-row:active{background:rgba(118,118,128,.08)}.ds-row:focus-visible{outline:3px solid rgba(0,122,255,.55);outline-offset:-3px}.ds-row-label small{display:block;font-size:11px;letter-spacing:.006em;color:var(--label-2,#6E6E73);margin-top:1px}.ds-sw{position:relative;width:38px;height:23px;border-radius:980px;background:rgba(120,120,128,.16);transition:background .18s cubic-bezier(.32,.72,0,1)}.ds-sw::after{content:'';position:absolute;top:1.5px;left:1.5px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04),0 0 0 .5px rgba(0,0,0,.04);transition:transform .24s cubic-bezier(.32,.72,0,1)}[aria-pressed=\"true\"]>.ds-sw{background:var(--accent,#007AFF)}[aria-pressed=\"true\"]>.ds-sw::after{transform:translateX(15px)}"
+    },
+    {
+      "name": "Section heading with scope",
+      "kind": "nav",
+      "refersTo": "section-heading",
+      "description": "Grey caption above a card; the trailing caption says how far the section reaches.",
+      "html": "<div class=\"ds-label\"><span>Page preferences</span><span class=\"ds-scope\">Every watch page</span></div>",
+      "css": ".ds-label{display:flex;align-items:baseline;gap:8px;padding:0 2px;font:590 11px/1.4 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:.006em;color:var(--label-2,#6E6E73)}.ds-label>:first-child{flex:1 1 auto;min-width:0}.ds-scope{font-weight:400;flex:0 0 auto}"
+    },
+    {
+      "name": "Segmented control",
+      "kind": "chip",
+      "refersTo": "segmented",
+      "description": "Exclusive choice on a sunken track; the selected segment is a raised thumb. Numerals keep their order in RTL.",
+      "html": "<div class=\"ds-seg\" role=\"group\"><button aria-pressed=\"false\">0.75×</button><button aria-pressed=\"true\">1×</button><button aria-pressed=\"false\">1.25×</button><button aria-pressed=\"false\">1.5×</button></div>",
+      "css": ".ds-seg{display:flex;gap:2px;padding:2px;background:rgba(118,118,128,.12);border-radius:9px}.ds-seg button{flex:1 1 auto;min-width:0;border:0;background:none;color:var(--label,#1D1D1F);font:13px/1.4 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;font-variant-numeric:tabular-nums;unicode-bidi:plaintext;padding:5px 6px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:background .18s cubic-bezier(.32,.72,0,1),color .18s cubic-bezier(.32,.72,0,1)}.ds-seg button:hover{background:rgba(118,118,128,.05)}.ds-seg button[aria-pressed=\"true\"]{background:#fff;font-weight:590;box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04),0 0 0 .5px rgba(0,0,0,.04)}.ds-seg button:active{transform:scale(.97)}.ds-seg button:focus-visible{outline:3px solid rgba(0,122,255,.55);outline-offset:1px}"
+    },
+    {
+      "name": "Button",
+      "kind": "button",
+      "refersTo": "button",
+      "description": "Tinted fill by default; filled accent under white text; plain blue text; danger is red text on the same fill.",
+      "html": "<button class=\"ds-btn\">Export</button> <button class=\"ds-btn ds-btn-filled\">Import</button> <button class=\"ds-btn ds-btn-plain\">Reset</button> <button class=\"ds-btn ds-btn-danger\">Delete all</button>",
+      "css": ".ds-btn{font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;cursor:pointer;border:0;border-radius:8px;padding:7px 14px;color:var(--label,#1D1D1F);background:rgba(118,118,128,.12);transition:background .18s cubic-bezier(.32,.72,0,1),transform .18s cubic-bezier(.32,.72,0,1)}.ds-btn:hover{background:rgba(118,118,128,.08)}.ds-btn:active{transform:scale(.97)}.ds-btn:focus-visible{outline:3px solid rgba(0,122,255,.55);outline-offset:1px}.ds-btn-filled{background:#0A6FDB;color:#fff;font-weight:590}.ds-btn-filled:hover{background:#0962c1}.ds-btn-plain{background:none;color:#006ADB;padding-inline:6px}.ds-btn-plain:hover{background:rgba(118,118,128,.05)}.ds-btn-danger{color:#FF3B30}"
+    },
+    {
+      "name": "Search field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "The pinned search over the catalogue; native clear button, accent caret, ring on focus.",
+      "html": "<input class=\"ds-search\" type=\"search\" placeholder=\"Search every setting\" aria-label=\"Search every setting\">",
+      "css": ".ds-search{width:100%;font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;padding:8px 11px;border-radius:9px;border:.5px solid rgba(60,60,67,.16);background:var(--bg-raised,#fff);color:var(--label,#1D1D1F);caret-color:var(--accent,#007AFF);unicode-bidi:plaintext;transition:border-color .18s cubic-bezier(.32,.72,0,1)}.ds-search::placeholder{color:var(--label-2,#6E6E73)}.ds-search:hover{border-color:rgba(60,60,67,.34)}.ds-search:focus-visible{border-color:var(--accent,#007AFF);outline:3px solid rgba(0,122,255,.45);outline-offset:0}"
+    },
+    {
+      "name": "Settings row (navigation)",
+      "kind": "nav",
+      "refersTo": "settings-row",
+      "description": "A single raised row that goes somewhere or folds something out; the chevron turns when it opens.",
+      "html": "<button class=\"ds-settings-row\" aria-expanded=\"false\"><span class=\"ds-row-label\"><span>Customize YouTube</span><small>All settings, modes and data</small></span><span class=\"ds-chevron\" aria-hidden=\"true\"></span></button>",
+      "css": ".ds-settings-row{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;padding:9px 14px;border:0;border-radius:14px;cursor:pointer;background:var(--bg-raised,#fff);box-shadow:0 0 0 .5px rgba(0,0,0,.08),0 1px 1px rgba(0,0,0,.03);color:var(--label,#1D1D1F);font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;text-align:start;transition:background .18s cubic-bezier(.32,.72,0,1)}.ds-settings-row:hover{background:rgba(118,118,128,.05)}.ds-settings-row:active{background:rgba(118,118,128,.08)}.ds-settings-row:focus-visible{outline:2px solid var(--accent,#007AFF);outline-offset:2px}.ds-settings-row .ds-row-label{display:flex;flex-direction:column;flex:1 1 auto;min-width:0}.ds-settings-row small{margin-top:1px;color:var(--label-2,#6E6E73);font-size:11px;letter-spacing:.006em}.ds-chevron{width:7px;height:7px;flex:0 0 auto;border-right:1.8px solid rgba(60,60,67,.34);border-top:1.8px solid rgba(60,60,67,.34);transform:rotate(45deg);transition:transform .24s cubic-bezier(.32,.72,0,1)}.ds-settings-row[aria-expanded=\"true\"] .ds-chevron{transform:rotate(135deg)}"
+    },
+    {
+      "name": "Panel chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "An action in the in-page panel: a drawn glyph and a word, on the dark sheet.",
+      "html": "<button class=\"ds-chip\"><span class=\"ds-glyph\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"5\" width=\"18\" height=\"14\" rx=\"2.5\"/><rect x=\"12\" y=\"11.5\" width=\"7\" height=\"6\" rx=\"1.4\" fill=\"currentColor\" stroke=\"none\"/></svg></span><span>PiP</span></button>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:6px;border:.5px solid rgba(255,255,255,.14);background:rgba(118,118,128,.24);color:#F5F5F7;border-radius:8px;padding:7px 11px;font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;cursor:pointer;white-space:nowrap;transition:background .18s cubic-bezier(.32,.72,0,1),transform .18s cubic-bezier(.32,.72,0,1)}.ds-chip:hover{background:rgba(118,118,128,.36)}.ds-chip:active{transform:scale(.96)}.ds-chip:focus-visible{outline:3px solid rgba(10,132,255,.6);outline-offset:2px}.ds-glyph{display:block;opacity:.85}.ds-glyph svg{width:14px;height:14px;display:block}"
+    },
+    {
+      "name": "Toast",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "A confirmation that floats over the foot of the pane so nothing under the finger moves; also the polite live region.",
+      "html": "<p class=\"ds-toast\" role=\"status\" aria-live=\"polite\">Study applied — 7 settings changed</p>",
+      "css": ".ds-toast{display:inline-block;margin:0;padding:8px 14px;font:13px/1.45 -apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif;letter-spacing:-.006em;color:var(--label,#1D1D1F);background:var(--bg-raised,#fff);border-radius:980px;box-shadow:0 24px 60px rgba(0,0,0,.22),0 0 0 .5px rgba(0,0,0,.06);text-align:center;pointer-events:none;animation:ds-toast-in .18s cubic-bezier(.32,.72,0,1)}@keyframes ds-toast-in{from{opacity:0;transform:translateY(4px)}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The System Settings Pane",
+    "overview": "Costum's surfaces are drawn as if Apple had shipped them: the OS provides San Francisco, the palette is Apple's published system tints plus the semantic label / fill / separator ramps, and every control is a native primitive (switch, segmented control, grouped inset list, disclosure fold, thin sheet). Nothing is branded beyond a single red app mark. The visual identity is restraint; the product's character is utility, and the design's job is to get out of the way of 238 settings.\n\nTwo surfaces share one system. The toolbar popup follows `color-scheme: light dark` and is a fixed 340x560 pane on macOS (full-height sheet on a phone). The in-page panel is a dark-only thick blurred sheet floating over YouTube, carrying an inlined copy of the same tokens. Where the build had drifted between them (five type sizes in the panel, eleven in the popup) this pass collapsed both to the same four-step scale and the same tracking, and a test now holds the two in step.",
+    "keyCharacteristics": [
+      "System font, never shipped: `-apple-system` first, SF Arabic for `dir=\"rtl\"`.",
+      "Apple system blue as the control accent; a darker blue for filled buttons and a separate accent for blue text, each chosen to clear AA on its ground.",
+      "One raised white/grey card per group, 14px corners, hairline ring instead of a border.",
+      "Four type steps (11/13/15/28) with per-step tracking; nothing interactive below 13px.",
+      "Motion only on transform, opacity and colour; the sheet curve `cubic-bezier(.32,.72,0,1)` at 180-240ms.",
+      "Full accessibility rails: reduced motion, reduced transparency, increased contrast, focus rings drawn inside clipped lists."
+    ],
+    "rules": [
+      {
+        "name": "One type scale",
+        "body": "Every font-size is a scale token (11/13/15/28) with its paired tracking; nothing interactive is set at caption size. Enforced by tests/style-slop.py.",
+        "section": "typography"
+      },
+      {
+        "name": "Blue by role",
+        "body": "--accent for filled controls, --accent-fill under white text, --accent-text for words; each chosen to clear AA on its ground in both schemes.",
+        "section": "colors"
+      },
+      {
+        "name": "Scope on every heading",
+        "body": "A section heading carries its reach on the trailing edge: This video / Every video / Every watch page / All of YouTube. Both surfaces use the same words.",
+        "section": "layout"
+      },
+      {
+        "name": "Rings, not borders",
+        "body": "Cards are edged by a .5px hairline ring in the shadow; no card radius over 16px; only the switch track and the toast are pills.",
+        "section": "elevation"
+      },
+      {
+        "name": "Motion conveys state",
+        "body": "Transitions on transform, opacity and colour only; the sheet curve at 180-240ms; the panel's entrance plays on opening, never on a rebuild; every rail honours prefers-reduced-motion.",
+        "section": "motion"
+      },
+      {
+        "name": "Two decks, one vocabulary",
+        "body": "Every English string has an Arabic one (tests/ui-contract.py); 'mode' never 'profile'; Arabic counts use one/two/3-10/11+ forms; numerals keep their order under dir=rtl via unicode-bidi: plaintext.",
+        "section": "copy"
+      }
+    ],
+    "dos": [
+      "Do set every `font-size` through `--t-caption` / `--t-body` / `--t-title`; the scale is the only source of sizes.",
+      "Do pair every step with its tracking token (`--track-*`); SF is tracked by size, not left at `normal`.",
+      "Do choose the blue by role: `--accent` for controls, `--accent-fill` under white text, `--accent-text` for words.",
+      "Do build a group as caption heading (with scope on the trailing edge) above one ringed card of 44px rows, separators inset to the label.",
+      "Do keep transitions on `background`, `color`, `border-color`, `box-shadow`, `transform`, `opacity` and `filter`, on `--ease` at `--dur` (240ms) or `--dur-fast` (180ms).",
+      "Do give every control a 44px target under `pointer: coarse` and a visible 3px accent ring on `:focus-visible`.",
+      "Do write \"mode\", never \"profile\", in user-facing copy; name the levels Control Center, Customize and the surface's own name; use `arCount` (one / two / 3-10 / 11+) for every Arabic count.",
+      "Do keep the popup and the panel token blocks identical when either changes; the style test compares them."
+    ],
+    "donts": [
+      "Don't put anything interactive at 11px.",
+      "Don't round a card past 16px; only the switch track and the toast are pills.",
+      "Don't draw a thick (≥3px) border down one side of anything, or a `border` on a card; the hairline ring is the edge.",
+      "Don't animate width, height, padding, margin or offsets; don't loop an animation; don't use an easing whose y control points leave 0..1.",
+      "Don't clip text to a gradient or introduce any gradient beyond the app mark.",
+      "Don't use `label-3` for text, or Apple's raw .6-alpha secondary label for 11px hints; the solid `label-2` values exist because the alpha fails AA at this size.",
+      "Don't shout section headings: sentence case, no `text-transform: uppercase`.",
+      "Don't ship a font file; the system stack provides SF, and the Arabic deck switches the stack rather than the size."
+    ]
+  }
+}

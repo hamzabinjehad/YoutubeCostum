@@ -25,3 +25,6 @@ extension.crx
 # Chrome compiles the declarativeNetRequest rules here when it loads the
 # unpacked extension. Build output, regenerated on every load.
 extension/_metadata/
+
+# package.sh moves the previous Xcode project aside instead of deleting it
+apple/generated.bak-*/

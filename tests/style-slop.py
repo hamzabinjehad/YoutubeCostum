@@ -170,6 +170,31 @@ for label, fg, bg, _ in PAIRS:
     got = contrast(fg, bg)
     check('%s reaches AA' % label, got >= 4.5, '%s on %s is %.2f:1' % (fg, bg, got))
 
+# A fill with a word on it is a text pairing too, and the test did not look at
+# them: white on the system blue is 3.65:1, which is what the only button on the
+# focus block screen was set in.
+FILLS = [
+    ('white on the button fill (light)', '#FFFFFF', token('accent-fill')),
+    ('white on the button fill (dark)', '#FFFFFF', token('accent-fill', True)),
+]
+for label, fg, bg in FILLS:
+    if not bg:
+        check('a fill for buttons that carry words is declared: ' + label, False)
+        continue
+    got = contrast(fg, bg)
+    check('%s reaches AA' % label, got >= 4.5, '%s on %s is %.2f:1' % (fg, bg, got))
+
+# The filled button must use it, not the switch accent.
+check('filled buttons use the fill, not the switch accent',
+      re.search(r'\.btn\.filled\s*\{[^}]*background:\s*var\(--accent-fill\)', sheet) is not None)
+
+panel_src = open(os.path.join(ROOT, 'extension/content/panel.js'), encoding='utf-8').read()
+focus_src = open(os.path.join(ROOT, 'extension/content/modules/focus.js'), encoding='utf-8').read()
+white_on_blue = re.search(r'background:\s*#0A84FF;\s*color:\s*#FFFFFF', focus_src)
+check('the block screen does not put white on the system blue',
+      white_on_blue is None, white_on_blue and white_on_blue.group(0))
+
+
 # And it has to actually be the one used for words.
 for path in SHEETS:
     page = os.path.relpath(path, ROOT)
@@ -189,6 +214,36 @@ steps = re.findall(r'--t-[a-z]+:\s*([0-9.]+)px', scale)
 check('the scale is declared and small', 3 <= len(steps) <= 6, ', '.join(steps))
 check('the scale has no step below 11px',
       all(float(s) >= 11 for s in steps), ', '.join(steps))
+
+# --------------------------------------------------- one product, two surfaces
+
+# The panel lives on YouTube's page and cannot share the stylesheet, so its
+# tokens are copied. Copies drift: the popover moved to four type steps and
+# sentence-case section labels and the panel kept five sizes and shouting
+# headers, which is how one product comes to look like two.
+panel = open(os.path.join(ROOT, 'extension/content/panel.js'), encoding='utf-8').read()
+shared = open(os.path.join(ROOT, 'extension/ui/shared/apple.css'), encoding='utf-8').read()
+
+for token in ('--t-caption', '--t-body', '--t-title'):
+    here = re.search(re.escape(token) + r':\s*([0-9.]+px)', shared)
+    there = re.search(re.escape(token) + r':\s*([0-9.]+px)', panel)
+    check('the panel shares the popover\'s %s' % token,
+          here and there and here.group(1) == there.group(1),
+          '%s vs %s' % (here and here.group(1), there and there.group(1)))
+
+panel_css = re.search(r'const CSS = `(.*?)`;', panel, re.S)
+if panel_css:
+    body = panel_css.group(1)
+    raw = re.findall(r'font-size:\s*([0-9.]+)px', body)
+    check('the panel takes its type from the scale, not from literals',
+          not raw, ', '.join(sorted(set(raw))))
+    check('the panel does not shout its section labels',
+          'text-transform: uppercase' not in body)
+    # all:initial resets the face to the browser's serif, and the floating
+    # button spent a session in Times because the face was set a level too low.
+    check('the panel sets its face on the host, where all:initial resets it',
+          re.search(r':host\s*\{[^}]*font-family', body) is not None)
+
 
 if failures:
     print('  %d style finding(s):' % len(failures))

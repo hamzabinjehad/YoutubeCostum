@@ -43,7 +43,7 @@
       }
       if (row > limit) {
         item.setAttribute(MARK, '');
-        item.style.setProperty('display', 'none', 'important');
+
       }
     });
   }
@@ -51,7 +51,7 @@
   function restore() {
     document.querySelectorAll('[' + MARK + ']').forEach((item) => {
       item.removeAttribute(MARK);
-      item.style.removeProperty('display');
+
     });
   }
 
@@ -92,21 +92,23 @@
       const over = index >= limit;
       if (over === item.hasAttribute(RELATED_MARK)) return;
       item.toggleAttribute(RELATED_MARK, over);
-      if (over) item.style.setProperty('display', 'none', 'important');
-      else item.style.removeProperty('display');
+
     });
   }
 
   function restoreRelated() {
     document.querySelectorAll('[' + RELATED_MARK + ']').forEach((item) => {
       item.removeAttribute(RELATED_MARK);
-      item.style.removeProperty('display');
+
     });
   }
 
   Costum.register({
     name: 'homeGrid',
+    disable() { clearTimeout(due); due = null; restore(); restoreRelated(); },
     apply(s) {
+      clearTimeout(due); due = null;
+      restore();
       apply(s);
       if (s.layout.relatedLimit > 0) clipRelated(s.layout.relatedLimit);
       else restoreRelated();

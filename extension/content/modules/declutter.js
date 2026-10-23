@@ -11,16 +11,28 @@
     if (id) location.replace('https://www.youtube.com/watch?v=' + id);
   }
 
+  const rewrites = new Map();
+  function restoreLinks() {
+    rewrites.forEach((held, link) => { if (link.getAttribute('href') === held.next) link.setAttribute('href', held.original); });
+    rewrites.clear();
+  }
   function rewriteShortsLinks(root) {
     root.querySelectorAll('a[href^="/shorts/"]').forEach((a) => {
       const id = a.getAttribute('href').split('/')[2];
-      if (id) a.setAttribute('href', '/watch?v=' + id.split('?')[0]);
+      if (id) {
+        const next = '/watch?v=' + id.split('?')[0];
+        rewrites.set(a, { original: a.getAttribute('href'), next });
+        a.setAttribute('href', next);
+      }
     });
   }
 
   Costum.register({
     name: 'declutter',
+    disable: restoreLinks,
     apply(s) {
+      if (s.declutter.shorts !== 'asVideo') restoreLinks();
+      for (const link of rewrites.keys()) if (!link.isConnected) rewrites.delete(link);
       if (s.declutter.shorts === 'asVideo') {
         shortsAsVideo();
         rewriteShortsLinks(document);

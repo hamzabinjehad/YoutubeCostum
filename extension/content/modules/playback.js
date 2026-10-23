@@ -2,18 +2,36 @@
   'use strict';
   const Costum = self.Costum;
 
-  const state = { lastSpeed: null, loopHandler: null };
+  const state = { lastSpeed: null, adjustedFor: '', appliedRate: null, loopHandler: null, loopVideo: null };
+  const originals = new Map();
 
+  /* Which speed a video gets, highest precedence first:
+   *   1. a speed the person set on this very video — a nudge, a preset in the
+   *      panel — stays until they leave it;
+   *   2. this channel's own speed, if they kept one;
+   *   3. the music-channel speed, then the remembered last speed, then the
+   *      default — the global preferences, however a mode set them.
+   * `s` is the effective settings, so (2) is already folded into
+   * defaultSpeed; ctx.channel() says whether that happened. */
   function effectiveSpeed(s, ctx) {
+    if (state.adjustedFor && state.adjustedFor === ctx.videoId() && state.lastSpeed) return state.lastSpeed;
+    const own = ctx.channel && ctx.channel().prefs;
+    if (own && Number(own.speed) > 0) return Number(own.speed);
     if (s.playback.musicSpeed > 0 && ctx.isMusic()) return s.playback.musicSpeed;
     if (s.playback.rememberSpeed && state.lastSpeed) return state.lastSpeed;
     return s.playback.defaultSpeed;
   }
 
+  const current = (ctx) => (ctx.effective ? ctx.effective() : ctx.settings());
+
   function setSpeed(video, rate, remember) {
     const clamped = Math.max(0.07, Math.min(16, Math.round(rate * 1000) / 1000));
     video.playbackRate = clamped;
     if (remember) state.lastSpeed = clamped;
+    // What Costum itself set, so the ratechange it causes is not mistaken
+    // for a choice the person made — a channel's 1.5× must not become the
+    // "remembered" speed that follows them to every other channel.
+    else state.appliedRate = clamped;
     return clamped;
   }
 
@@ -22,8 +40,20 @@
     const video = ctx.video();
     if (!video) return;
     const step = s.playback.speedStep || 0.05;
-    const next = setSpeed(video, video.playbackRate + direction * step, s.playback.rememberSpeed);
+    const next = setSpeed(video, video.playbackRate + direction * step, true);
+    state.adjustedFor = ctx.videoId();
     ctx.toast(next.toFixed(2) + '×');
+  }
+
+  /* The panel's presets come through here rather than writing playbackRate
+     themselves, so a chosen speed counts as this video's own — and outranks
+     the channel's — the same way a nudge does. */
+  function choose(ctx, rate) {
+    const video = ctx.video();
+    if (!video || !Number.isFinite(rate)) return;
+    const next = setSpeed(video, rate, true);
+    state.adjustedFor = ctx.videoId();
+    ctx.toast(next.toFixed(2).replace(/\.?0+$/, '') + '×');
   }
 
   function attachWheel(ctx) {
@@ -32,6 +62,7 @@
     container.__costumWheel = true;
 
     container.addEventListener('wheel', (ev) => {
+      if (!ctx.settings().enabled) return;
       const mode = ctx.settings().playback.wheelOnPlayer;
       if (mode === 'none') return;
       const video = ctx.video();
@@ -42,11 +73,7 @@
       if (mode === 'speed') {
         nudge(ctx, dir);
       } else {
-        const player = document.getElementById('movie_player');
-        if (!player || !player.getVolume) return;
-        const next = Math.max(0, Math.min(100, player.getVolume() + dir * 5));
-        player.setVolume(next);
-        ctx.toast(Math.round(next) + '%');
+        ctx.action(dir > 0 ? 'volumeUp' : 'volumeDown')(ctx);
       }
     }, { passive: false });
   }
@@ -71,8 +98,10 @@
   }
 
   function attachLoop(ctx, video) {
-    if (state.loopHandler) video.removeEventListener('timeupdate', state.loopHandler);
+    if (state.loopHandler && state.loopVideo) state.loopVideo.removeEventListener('timeupdate', state.loopHandler);
+    state.loopVideo = video;
     state.loopHandler = () => {
+      if (!ctx.settings().enabled) return;
       const target = self.CostumDefaults.loopTarget(
         ctx.settings().playback.loop, ctx.videoId(), video.currentTime);
       if (target !== null) video.currentTime = target;
@@ -82,6 +111,15 @@
 
   Costum.register({
     name: 'playback',
+    disable() {
+      if (state.loopVideo) state.loopVideo.removeEventListener('timeupdate', state.loopHandler);
+      state.loopVideo = null; state.loopHandler = null;
+      originals.forEach((rate, video) => { video.playbackRate = rate; });
+      originals.clear();
+    },
+    // A speed chosen on one video does not follow you to the next; the
+    // remembered speed (if that setting is on) does, by design.
+    onNavigate() { state.adjustedFor = ''; },
 
     apply(s, ctx) {
       ctx.toPage('config', {
@@ -93,6 +131,8 @@
     },
 
     onVideo(video, s, ctx) {
+      if (!originals.has(video)) originals.set(video, video.playbackRate);
+      for (const old of originals.keys()) if (!old.isConnected) originals.delete(old);
       setSpeed(video, effectiveSpeed(s, ctx), false);
       attachLoop(ctx, video);
 
@@ -106,10 +146,13 @@
       if (!video.__costumRate) {
         video.__costumRate = true;
         video.addEventListener('ratechange', () => {
-          if (state.lastSpeed && ctx.settings().playback.rememberSpeed) state.lastSpeed = video.playbackRate;
+          if (!ctx.settings().enabled || !ctx.settings().playback.rememberSpeed) return;
+          if (state.appliedRate !== null && Math.abs(video.playbackRate - state.appliedRate) < 0.001) return;
+          if (state.lastSpeed) state.lastSpeed = video.playbackRate;
         });
         video.addEventListener('loadeddata', () => {
-          const want = effectiveSpeed(ctx.settings(), ctx);
+          if (!ctx.settings().enabled) return;
+          const want = effectiveSpeed(current(ctx), ctx);
           if (Math.abs(video.playbackRate - want) > 0.001) setSpeed(video, want, false);
         });
       }
@@ -121,9 +164,10 @@
       speedReset: (ctx) => {
         const video = ctx.video();
         if (!video) return;
-        state.lastSpeed = null;
-        ctx.toast(setSpeed(video, ctx.settings().playback.defaultSpeed, false).toFixed(2) + '×');
+        state.lastSpeed = null; state.adjustedFor = '';
+        ctx.toast(setSpeed(video, effectiveSpeed(current(ctx), ctx), false).toFixed(2) + '×');
       },
+      setSpeed: (ctx, rate) => choose(ctx, Number(rate)),
       loopStart: (ctx) => mark(ctx, 'start'),
       loopEnd: (ctx) => mark(ctx, 'end')
     },

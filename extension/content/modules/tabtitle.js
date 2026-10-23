@@ -41,6 +41,7 @@
 
   Costum.register({
     name: 'tabTitle',
+    disable: stop,
     apply(s) {
       if (s.declutter.titleCount) start();
       else stop();

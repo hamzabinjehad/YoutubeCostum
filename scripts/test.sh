@@ -11,6 +11,10 @@ find "$ROOT/extension" -name '*.js' | sort > /tmp/costum-jsfiles.txt
 COSTUM_ROOT="$ROOT" osascript -l JavaScript "$ROOT/tests/syntax.js"
 
 echo
+echo "Chrome build:"
+COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/chrome-build.py"
+
+echo
 echo "Settings spec:"
 COSTUM_ROOT="$ROOT" python3 "$ROOT/tests/spec-paths.py"
 

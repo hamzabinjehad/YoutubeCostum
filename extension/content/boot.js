@@ -4,8 +4,8 @@
   'use strict';
 
   const api = self.browser || self.chrome;
-  const { withDefaults } = self.CostumDefaults;
-  const { buildDeclutterCss, buildLayoutCss, buildModestyCss } = self.CostumCss;
+  const { withDefaults, withChannel } = self.CostumDefaults;
+  const { buildDeclutterCss, buildLayoutCss, buildModestyCss, pageName } = self.CostumCss;
 
   const sheets = {};
 
@@ -18,19 +18,36 @@
     return el;
   }
 
+  /* Which page this is, for the mobile rules that cannot scope themselves
+     (see pageName in css.js). Set before the first paint and again on every
+     navigation, by the router. */
+  function markPage() {
+    document.documentElement.setAttribute('costum-page', pageName(location.pathname));
+  }
+  markPage();
+
   // Claim the slots now so ordering is stable once we have content.
   sheet('declutter');
   sheet('layout');
   sheet('modesty');
+  sheet('effects');
 
-  function paint(settings) {
+  /* The channel being watched, once the router has found it. Painted here so
+     a channel's clutter choices reach the stylesheet the same way global ones
+     do; before it is known, the global preferences paint. */
+  self.CostumChannel = self.CostumChannel || { id: '', name: '', videoId: '' };
+
+  function paint(stored) {
+    const settings = withChannel(stored, self.CostumChannel.id);
     if (!settings.enabled) {
       sheet('declutter').textContent = '';
       sheet('layout').textContent = '';
       sheet('modesty').textContent = '';
-      document.documentElement.removeAttribute('costum-cinema');
+      sheet('effects').textContent = '';
+      ['costum-cinema', 'costum-zen', 'costum-mini', 'costum-native'].forEach((name) => document.documentElement.removeAttribute(name));
       return;
     }
+    sheet('effects').textContent = '[costum-blocked], [costum-shorts], [costum-row-clipped], [costum-related-clipped] { display: none !important; }';
     sheet('declutter').textContent = buildDeclutterCss(settings);
     sheet('layout').textContent = buildLayoutCss(settings);
     sheet('modesty').textContent = buildModestyCss(settings);
@@ -41,7 +58,7 @@
       'costum-zen', !!settings.layout.zen && location.pathname.startsWith('/watch'));
   }
 
-  self.CostumBoot = { paint, sheet };
+  self.CostumBoot = { paint, sheet, markPage };
 
   // The bridge patches ytInitialPlayerResponse and MediaSource.isTypeSupported.
   // Injected any later than this, the player has already read both.
@@ -61,7 +78,7 @@
     (document.head || document.documentElement).appendChild(script);
   })();
 
-  api.storage.local.get('settings')
+  self.CostumReady = api.storage.local.get('settings')
     .then((bag) => {
       const settings = withDefaults(bag && bag.settings);
       self.CostumSettings = settings;

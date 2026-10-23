@@ -18,6 +18,10 @@
     'ytd-statement-banner-renderer',
     'ytd-companion-slot-renderer',
     'ytm-promoted-video-renderer',
+    // Mobile web: the feed and search ad, and the watch page's companion slot.
+    'ad-slot-renderer',
+    'ytm-rich-item-renderer:has(ad-slot-renderer)',
+    'ytm-companion-slot',
     '#player-ads',
     '#masthead-ad',
     '.ytp-suggested-action',
@@ -80,7 +84,7 @@
     },
 
     watch: {
-      comments: ['ytd-comments#comments', '#comments', 'ytd-item-section-renderer#comment-teaser', 'ytm-comments-entry-point-header-renderer'],
+      comments: ['ytd-comments#comments', '#comments', 'ytd-item-section-renderer#comment-teaser', 'ytm-comments-entry-point-header-renderer', 'yt-video-metadata-carousel-view-model:has(comments-entry-point-teaser-view-model)', 'comments-entry-point-teaser-view-model', 'yt-video-metadata-carousel-view-model:has(yt-comments-entry-point-message-view-model)'],
       related: ['#related', 'ytd-watch-next-secondary-results-renderer', 'ytm-item-section-renderer[section-identifier="related-items"]'],
       relatedCategories: ['#related ytd-shelf-renderer', '#related yt-related-chip-cloud-renderer', '#related ytd-chip-cloud-renderer'],
       liveChat: ['#chat', 'ytd-live-chat-frame', '#chat-container', '#teaser-carousel'],
@@ -102,15 +106,15 @@
        * names most guides use: related videos are `yt-lockup-view-model` now,
        * not `ytd-compact-video-renderer`, and a comment's timestamp is
        * `#published-time-text`, not `.published-time-text`. */
-      actionBar: ['#top-level-buttons-computed'],
-      subscribe: ['ytd-subscribe-button-renderer'],
+      actionBar: ['#top-level-buttons-computed', 'ytm-slim-video-action-bar-renderer .slim_video_action_bar_renderer_button'],
+      subscribe: ['ytd-subscribe-button-renderer', 'ytm-slim-video-action-bar-renderer .slim-subscribe-button'],
       join: ['#sponsor-button'],
-      likeDislike: ['segmented-like-dislike-button-view-model'],
-      videoTitle: ['ytd-watch-metadata h1'],
-      channelInfo: ['ytd-video-owner-renderer'],
+      likeDislike: ['segmented-like-dislike-button-view-model', 'ytm-slim-video-action-bar-renderer like-button-view-model', 'ytm-slim-video-action-bar-renderer dislike-button-view-model'],
+      videoTitle: ['ytd-watch-metadata h1', 'ytm-slim-video-information-renderer .slim-video-information-title'],
+      channelInfo: ['ytd-video-owner-renderer', 'ytm-slim-video-action-bar-renderer .slim-video-owner-icon'],
       subscriberCount: ['#owner-sub-count'],
-      viewsAndDate: ['ytd-watch-info-text'],
-      description: ['#description', 'ytd-text-inline-expander'],
+      viewsAndDate: ['ytd-watch-info-text', 'ytm-slim-video-information-renderer .slim-video-information-subtitle'],
+      description: ['#description', 'ytd-text-inline-expander', 'ytm-slim-video-information-renderer .slim-video-information-show-more'],
       commentsCount: ['ytd-comments-header-renderer #count'],
       commentsSort: ['ytd-comments-header-renderer #sort-menu'],
       commentAvatar: ['ytd-comment-view-model #author-thumbnail'],
@@ -135,13 +139,14 @@
     },
 
     home: {
-      feed: ['ytd-browse[page-subtype="home"] ytd-rich-grid-renderer', 'ytd-browse[page-subtype="home"] #contents'],
-      chips: ['ytd-browse[page-subtype="home"] #chips-wrapper', 'ytd-feed-filter-chip-bar-renderer', 'ytd-browse[page-subtype="home"] #header'],
+      feed: ['ytd-browse[page-subtype="home"] ytd-rich-grid-renderer', 'ytd-browse[page-subtype="home"] #contents', 'html[costum-page="home"] ytm-rich-grid-renderer'],
+      chips: ['ytd-browse[page-subtype="home"] #chips-wrapper', 'ytd-feed-filter-chip-bar-renderer', 'ytd-browse[page-subtype="home"] #header', 'html[costum-page="home"] ytm-feed-filter-chip-bar-renderer'],
       // Mixes are radio playlists; their links always carry a list=RD… id.
       mixes: [
         'ytd-rich-item-renderer:has(a[href*="list=RD"])',
         'yt-lockup-view-model:has(a[href*="list=RD"])',
-        'ytd-radio-renderer', 'ytd-compact-radio-renderer'
+        'ytd-radio-renderer', 'ytd-compact-radio-renderer',
+        'ytm-rich-item-renderer:has(a[href*="list=RD"])'
       ],
       playlists: ['ytd-rich-item-renderer:has(ytd-playlist-thumbnail)', 'ytd-playlist-renderer', 'ytd-compact-playlist-renderer'],
       // The editorial shelves YouTube injects into the feed: breaking news,
@@ -188,16 +193,16 @@
         'ytd-search-suggestion-renderer:has(yt-icon#history-icon)'
       ],
       chips: ['ytd-search yt-chip-cloud-renderer', 'ytd-search ytd-feed-filter-chip-bar-renderer'],
-      filters: ['ytd-search ytd-search-sub-menu-renderer', 'ytd-search #filter-button'],
+      filters: ['ytd-search ytd-search-sub-menu-renderer', 'ytd-search #filter-button', 'ytm-search ytm-search-sub-menu-renderer'],
       aboutResults: ['ytd-search ytd-search-header-renderer'],
       peopleAlsoSearch: ['ytd-search ytd-horizontal-card-list-renderer:has(ytd-search-refinement-card-renderer)'],
-      promotedVideos: ['ytd-search ytd-promoted-video-renderer', 'ytd-search ytd-ad-slot-renderer'],
+      promotedVideos: ['ytd-search ytd-promoted-video-renderer', 'ytd-search ytd-ad-slot-renderer', 'ytm-search ad-slot-renderer', 'ytm-search ytm-promoted-video-renderer'],
       promotedWebsites: ['ytd-search ytd-search-pyv-renderer'],
       shelves: ['ytd-search ytd-shelf-renderer', 'ytd-search grid-shelf-view-model'],
-      channels: ['ytd-search ytd-channel-renderer'],
+      channels: ['ytd-search ytd-channel-renderer', 'ytm-search ytm-compact-channel-renderer'],
       playlists: ['ytd-search ytd-playlist-renderer', 'ytd-search ytd-radio-renderer'],
       rightSidebar: ['ytd-search #secondary', 'ytd-two-column-search-results-renderer #secondary'],
-      infiniteScroll: ['ytd-search ytd-continuation-item-renderer']
+      infiniteScroll: ['ytd-search ytd-continuation-item-renderer', 'ytm-search ytm-continuation-item-renderer']
     },
 
     /* Verified against live YouTube on 30 Aug 2026. Two things had already
@@ -205,26 +210,48 @@
      * suggestion list is plain classes), and the logo is an icon inside
      * `ytd-logo` rather than markup we can pick apart. */
     shortsPlayer: {
-      overlay: ['ytd-reel-player-overlay-renderer'],
+      overlay: ['ytd-reel-player-overlay-renderer', 'ytm-reel-player-overlay-renderer'],
       title: ['yt-shorts-video-title-view-model'],
       channelBar: ['yt-reel-channel-bar-view-model'],
       avatar: ['yt-reel-channel-bar-view-model img'],
-      actions: ['ytd-reel-video-renderer #actions'],
+      actions: ['ytd-reel-video-renderer #actions', 'reel-action-bar-view-model'],
       navButtons: ['#navigation-button-down', '#navigation-button-up'],
       subscribe: ['ytd-reel-video-renderer ytd-subscribe-button-renderer'],
       description: ['ytd-reel-video-renderer #description'],
-      menu: ['ytd-reel-video-renderer #menu']
+      menu: ['ytd-reel-video-renderer #menu', 'ytm-reel-player-overlay-renderer .reel-player-overlay-top-bar']
     },
 
+    /* Two card formats, because YouTube is mid-migration. Search results are
+       still ytd-video-renderer with ids inside; the related column is the new
+       yt-lockup-view-model, which has not one id in it — every part is a
+       view-model tag or a class. Probed live: 26 lockups on a watch page and
+       none of the id-based selectors touched a single one, so all nine "Video
+       cards" switches did nothing there. Both shapes are covered now; each
+       lockup selector matched exactly one element per card when checked. */
     cards: {
-      title: ['ytd-video-renderer #video-title, ytd-rich-item-renderer #video-title, ytd-grid-video-renderer #video-title, yt-lockup-view-model #video-title, ytd-compact-video-renderer #video-title'],
-      channelAvatar: ['ytd-channel-thumbnail-with-link-renderer', '#channel-thumbnail'],
-      channelName: ['ytd-video-renderer ytd-channel-name', 'ytd-rich-item-renderer ytd-channel-name'],
-      meta: ['#metadata-line'],
-      duration: ['ytd-thumbnail-overlay-time-status-renderer'],
-      menu: ['ytd-video-renderer #menu', 'ytd-rich-item-renderer #menu'],
+      title: ['ytd-video-renderer #video-title, ytd-rich-item-renderer #video-title, ytd-grid-video-renderer #video-title, ytd-compact-video-renderer #video-title',
+              'yt-lockup-view-model h3',
+              'ytm-media-item .media-item-headline',
+              'ytm-compact-video-renderer .YtmCompactMediaItemHeadline'],
+      channelAvatar: ['ytd-channel-thumbnail-with-link-renderer', '#channel-thumbnail',
+                      'yt-lockup-view-model yt-decorated-avatar-view-model',
+                      'ytm-media-item .media-channel'],
+      channelName: ['ytd-video-renderer ytd-channel-name', 'ytd-rich-item-renderer ytd-channel-name',
+                    'yt-lockup-view-model yt-content-metadata-view-model .ytContentMetadataViewModelMetadataRow:first-child',
+                    'ytm-media-item .ytmBadgeAndBylineRendererItemByline:first-child',
+                    'ytm-media-item .ytmBadgeAndBylineRendererItemByline:first-child + .ytmBadgeAndBylineRendererSeparator'],
+      meta: ['#metadata-line',
+             'yt-lockup-view-model yt-content-metadata-view-model .ytContentMetadataViewModelMetadataRow:not(:first-child)',
+             'ytm-media-item .ytmBadgeAndBylineRendererItemByline:not(:first-child)',
+             'ytm-media-item .ytmBadgeAndBylineRendererSeparator'],
+      duration: ['ytd-thumbnail-overlay-time-status-renderer',
+                 'yt-lockup-view-model yt-thumbnail-badge-view-model',
+                 'ytm-thumbnail-overlay-time-status-renderer'],
+      menu: ['ytd-video-renderer #menu', 'ytd-rich-item-renderer #menu',
+             'yt-lockup-view-model button-view-model:has(button[aria-label="More actions"])',
+             'ytm-media-item .media-item-menu'],
       snippet: ['.metadata-snippet-text', '#description-text'],
-      badges: ['ytd-badge-supported-renderer'],
+      badges: ['ytd-badge-supported-renderer', 'ytm-badge-supported-renderer'],
       progress: ['#progress', 'ytd-thumbnail-overlay-resume-playback-renderer']
     },
 
@@ -236,8 +263,8 @@
     },
 
     header: {
-      hideAll: ['#masthead-container', 'ytd-masthead'],
-      logo: ['ytd-topbar-logo-renderer'],
+      hideAll: ['#masthead-container', 'ytd-masthead', 'ytm-mobile-topbar-renderer'],
+      logo: ['ytd-topbar-logo-renderer', 'ytm-home-logo'],
 
       countryCode: ['#country-code'],
       searchBar: ['ytd-masthead #center', 'yt-searchbox'],
@@ -326,8 +353,8 @@
       tabVideos: ['yt-tab-shape[tab-title="Videos"]', 'yt-tab-shape[tab-title="الفيديوهات"]'],
       tabShows: ['yt-tab-shape[tab-title="Shows"]', 'yt-tab-shape[tab-title="Releases"]'],
       tabPlaylists: ['yt-tab-shape[tab-title="Playlists"]', 'yt-tab-shape[tab-title="قوائم التشغيل"]'],
-      featured: ['ytd-channel-video-player-renderer'],
-      shelves: ['ytd-browse[page-subtype="channels"] ytd-shelf-renderer'],
+      featured: ['ytd-channel-video-player-renderer', 'ytm-channel-featured-video-renderer'],
+      shelves: ['ytd-browse[page-subtype="channels"] ytd-shelf-renderer', 'html[costum-page="channel"] ytm-shelf-renderer'],
       shortsShelf: ['ytd-browse[page-subtype="channels"] grid-shelf-view-model', 'ytd-browse[page-subtype="channels"] ytd-reel-shelf-renderer'],
       podcasts: ['yt-tab-shape[tab-title="Podcasts"]', 'yt-tab-shape[tab-title="بودكاست"]'],
       community: ['yt-tab-shape[tab-title="Posts"]', 'yt-tab-shape[tab-title="Community"]', 'yt-tab-shape[tab-title="المنشورات"]'],
@@ -617,7 +644,14 @@
         '  max-width: none !important; margin: 0 !important; padding: 0 !important;',
         '}',
         'html[costum-zen] ytd-watch-flexy #player-container-inner { padding-top: 0 !important; }',
-        'html[costum-zen] ytd-watch-flexy video { max-height: 100vh !important; }'
+        'html[costum-zen] ytd-watch-flexy video { max-height: 100vh !important; }',
+        '',
+        // The mobile watch page: the top bar, and everything under the player
+        // (title, buttons, comments, related) is one results renderer.
+        'html[costum-zen] ytm-mobile-topbar-renderer,',
+        'html[costum-zen] ytm-single-column-watch-next-results-renderer { display: none !important; }',
+        // The mobile player is fixed 48px down, under the bar that is now gone.
+        'html[costum-zen] #player-container-id { top: 0 !important; }'
       ].join('\n'));
     }
 
@@ -644,9 +678,114 @@
     return Object.keys(PAGE_OF).filter((group) => PAGE_OF[group](path));
   }
 
+  /* One name for the page, written to <html costum-page="…"> by boot.js and on
+   * every navigation by the router. Desktop rules scope themselves with
+   * ytd-browse[page-subtype]; the mobile site has no such attribute, and a
+   * rule like "hide the home feed" written against ytm-rich-grid-renderer
+   * would also empty a channel's video grid. This is the mobile equivalent. */
+  function pageName(path) {
+    if (path === '/' || path === '') return 'home';
+    if (path.startsWith('/watch')) return 'watch';
+    if (path.startsWith('/results')) return 'search';
+    if (path.startsWith('/shorts')) return 'shorts';
+    if (path.startsWith('/feed/subscriptions')) return 'subscriptions';
+    if (path.startsWith('/feed/')) return 'library';
+    if (/^\/(@|channel\/|c\/|user\/)/.test(path)) return 'channel';
+    return 'other';
+  }
+
+  /* ---- what works on the phone ----
+   * iPhone Safari is served m.youtube.com, a different DOM from the desktop
+   * site the iPad and the Mac get. Most switches were written against the
+   * desktop one, and on a phone they did nothing while looking wired.
+   *
+   * Every entry here was matched on live m.youtube.com (home, watch, search,
+   * a channel, Shorts) — by its own mobile selector, or because the mobile
+   * page uses the same element as the desktop one (channel headers and tabs,
+   * the Shorts title and channel bar). A switch that is not listed is not
+   * offered on the phone; it stays in Customize, labelled "Desktop only". */
+  const ON_MOBILE = {
+    global: ['bannerAds', 'infiniteScroll'],
+    watch: ['comments', 'related', 'actionBar', 'subscribe', 'likeDislike', 'videoTitle',
+      'channelInfo', 'viewsAndDate', 'description'],
+    home: ['feed', 'chips', 'mixes'],
+    search: ['filters', 'promotedVideos', 'channels', 'infiniteScroll'],
+    shortsPlayer: ['overlay', 'title', 'channelBar', 'avatar', 'actions', 'menu'],
+    cards: ['title', 'channelAvatar', 'channelName', 'meta', 'duration', 'menu', 'badges'],
+    channel: ['hideBanner', 'avatar', 'name', 'metadata', 'tagline', 'links', 'subscribe', 'join',
+      'tabBar', 'tabHome', 'tabVideos', 'tabShows', 'tabPlaylists', 'featured', 'shelves',
+      'podcasts', 'community', 'live', 'shortsTab', 'store'],
+    header: ['hideAll', 'logo', 'searchBar']
+  };
+
+  /* Outside the page-hiding groups most settings act on the video element or
+   * the whole page and work everywhere. These need the desktop page, a mouse
+   * or a keyboard. */
+  const DESKTOP_ONLY = [
+    'playback.wheelOnPlayer', 'block.hideWatched', 'declutter.shortsScroll',
+    'layout.cinema', 'layout.cinemaDim', 'layout.widePlayer', 'layout.fitToWindow',
+    'layout.autoTheater', 'layout.miniOnScroll', 'layout.hideScrollbar', 'layout.homeColumns',
+    'layout.feedWidth', 'layout.cardMinWidth', 'layout.rowGap', 'layout.relatedLimit',
+    'layout.homeRows'
+  ];
+
+  /* Does the setting at `path` do anything on this kind of page? */
+  function worksOn(path, mobile) {
+    if (!mobile) return true;
+    const parts = path.split('.');
+    if (parts[0] === 'shortcuts') return false;   // no keyboard on a phone
+    if (parts[0] === 'declutter' && DECLUTTER[parts[1]] && parts.length === 3) {
+      return (ON_MOBILE[parts[1]] || []).includes(parts[2]);
+    }
+    return !DESKTOP_ONLY.includes(path);
+  }
+
+  const isMobileHost = (host) => /^m\.youtube\.com$/.test(host || '');
+
+  /* ---- is a switch still reaching anything? ----
+   * YouTube renames elements without notice, and a selector that stops
+   * matching fails silently: the switch stays on, nothing happens. Every
+   * rename in the README was found by a person probing by hand.
+   *
+   * Only switches whose target is on every page of its kind are checked — a
+   * watch page always has a title and a related list, a channel always has a
+   * name and tabs. Comments, live chat, end screens, ads and the like come and
+   * go with the video, and checking them would cry wolf. */
+  const STRUCTURAL = {
+    header: ['logo', 'searchBar'],
+    watch: ['related', 'actionBar', 'subscribe', 'likeDislike', 'videoTitle', 'channelInfo',
+      'viewsAndDate', 'playButton', 'settingsButton', 'fullscreenButton'],
+    search: ['filters'],
+    channel: ['name', 'avatar', 'tabBar'],
+    shortsPlayer: ['title', 'channelBar', 'actions']
+  };
+
+  /* The switches that are on, belong to this page, work on this device, and
+   * whose selectors match nothing. `count(selector)` is the page's
+   * querySelectorAll length — passed in so this stays testable without a DOM.
+   * Hidden elements still count: display:none keeps them in the document. */
+  function deadSwitches(s, path, mobile, count) {
+    const pages = currentPages(path);
+    const on = s.declutter || {};
+    const dead = [];
+    for (const group of Object.keys(STRUCTURAL)) {
+      if (!pages.includes(group)) continue;
+      for (const key of STRUCTURAL[group]) {
+        if (!(on[group] || {})[key]) continue;
+        if (!worksOn('declutter.' + group + '.' + key, mobile)) continue;
+        const found = (DECLUTTER[group][key] || []).some((sel) => {
+          try { return count(sel) > 0; } catch (e) { return false; }
+        });
+        if (!found) dead.push(group + '.' + key);
+      }
+    }
+    return dead;
+  }
+
   root.CostumCss = {
-    DECLUTTER, SHORTS_SELECTORS, PAGE_OF, STYLE_ONLY,
-    buildDeclutterCss, buildLayoutCss, buildModestyCss, currentPages
-  ,PERSON_IMAGE_SELECTOR
+    DECLUTTER, SHORTS_SELECTORS, PAGE_OF, STYLE_ONLY, ON_MOBILE, DESKTOP_ONLY,
+    buildDeclutterCss, buildLayoutCss, buildModestyCss, currentPages,
+    pageName, worksOn, isMobileHost, STRUCTURAL, deadSwitches,
+    PERSON_IMAGE_SELECTOR
   };
 })(typeof self !== 'undefined' ? self : this);

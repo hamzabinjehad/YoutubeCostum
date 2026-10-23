@@ -109,6 +109,7 @@
    * arrive as a separate stream that is absent from the player response without
    * a subscription, so there is nothing for any client-side call to select. */
   let qualityRetries = 0;
+  let qualityTimer = null;
 
   function applyQuality() {
     const p = player();
@@ -138,6 +139,7 @@
    * playback settles. So the request is repeated until it sticks, then left
    * alone — polling forever would fight someone who picks a quality by hand. */
   function pressQuality() {
+    clearTimeout(qualityTimer);
     qualityRetries = 0;
     const attempt = () => {
       if (config.forceQuality === 'auto') return;
@@ -145,20 +147,28 @@
       applyQuality();
       const settled = p && p.getPlaybackQuality && p.getPlaybackQuality() === config.forceQuality;
       if (settled || ++qualityRetries > 8) return;
-      setTimeout(attempt, 700);
+      qualityTimer = setTimeout(attempt, 700);
     };
     attempt();
   }
 
   function meta() {
     const r = initialResponse || {};
-    const tracks = (((r.captions || {}).playerCaptionsTracklistRenderer || {}).captionTracks) || [];
+    const responseId = r.videoDetails && r.videoDetails.videoId;
+    const urlId = new URLSearchParams(location.search).get('v') || '';
+    const tracks = responseId === urlId ? (((r.captions || {}).playerCaptionsTracklistRenderer || {}).captionTracks) || [] : [];
     const p = player();
     const data = p && p.getVideoData ? p.getVideoData() : {};
     return {
       world: world(),
-      videoId: data.video_id || new URLSearchParams(location.search).get('v') || '',
-      title: data.title || document.title.replace(/ - YouTube$/, ''),
+      videoId: urlId,
+      captionVideoId: responseId || '',
+      captionsReady: responseId === urlId,
+      // The channel's stable id, for per-channel preferences; only trusted
+      // when the response is the current video's.
+      channelId: (responseId === urlId && r.videoDetails.channelId) || '',
+      author: (responseId === urlId && r.videoDetails.author) || '',
+      title: (data.video_id === urlId && data.title) || (responseId === urlId && r.videoDetails.title) || document.title.replace(/ - YouTube$/, ''),
       captionTracks: tracks.map((t) => ({
         baseUrl: t.baseUrl,
         lang: t.languageCode,
@@ -186,11 +196,23 @@
         available: p.getAvailableQualityLevels ? p.getAvailableQualityLevels() : [],
         wanted: config.forceQuality
       } : null });
+    } else if (cmd === 'volume') {
+      const p = player();
+      const delta = Number(payload && payload.delta);
+      if (!p || typeof p.getVolume !== 'function' || typeof p.setVolume !== 'function' || !Number.isFinite(delta)) {
+        send({ id, result: null });
+      } else {
+        try {
+          p.setVolume(Math.max(0, Math.min(100, p.getVolume() + Math.max(-5, Math.min(5, delta)))));
+          send({ id, result: { volume: p.getVolume() } });
+        } catch (e) { send({ id, result: null }); }
+      }
     } else if (cmd === 'meta') {
       send({ id, result: meta() });
     } else if (cmd === 'formats') {
       // Only the progressive list carries a playable direct URL.
-      const sd = (initialResponse && initialResponse.streamingData) || {};
+      const current = initialResponse && initialResponse.videoDetails && initialResponse.videoDetails.videoId === new URLSearchParams(location.search).get('v');
+      const sd = (current && initialResponse.streamingData) || {};
       send({ id, result: (sd.formats || []).map((f) => ({ url: f.url, mimeType: f.mimeType, height: f.height, fps: f.fps })) });
     }
   });

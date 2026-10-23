@@ -1,0 +1,4 @@
+{
+  "images" : [ { "idiom" : "universal", "filename" : "large-icon.png" } ],
+  "info" : { "author" : "scripts/icons.swift", "version" : 1 }
+}

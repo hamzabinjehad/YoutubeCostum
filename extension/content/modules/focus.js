@@ -54,8 +54,11 @@
   }
   button:hover { background: rgba(118,118,128,.36); }
   button:active { transform: scale(.97); }
-  button.go { background: #0A84FF; color: #FFFFFF; font-weight: 590; }
-  button.go:hover { background: #0A84FF; filter: brightness(1.1); }
+  /* Not the system blue. White on #0A84FF is 3.65:1, which Apple ships and
+     which is under AA for text this size — and this button is the only way off
+     a screen whose whole job is to stop you. Darkened until white clears 4.5. */
+  button.go { background: #0A6FDB; color: #FFFFFF; font-weight: 590; }
+  button.go:hover { background: #0A6FDB; filter: brightness(1.12); }
   button:focus-visible {
     outline: 3px solid rgba(10,132,255,.6); outline-offset: 2px;
   }
@@ -101,6 +104,7 @@
   let timer = null;
   let delayedFor = '';
   let confirmedFor = '';
+  let delayTick = null;
 
   function strings(s) {
     const lang = s.locale === 'auto' ? (navigator.language.startsWith('ar') ? 'ar' : 'en') : s.locale;
@@ -141,8 +145,9 @@
       const today = new Date(now);
       const midnight = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
       [minutes(focus.scheduleFrom), minutes(focus.scheduleTo)].forEach((edge) => {
-        let when = midnight + edge * 60000;
-        while (when <= now) when += 24 * 60 * 60000;   // the next one, today or tomorrow
+        const date = new Date(today.getFullYear(), today.getMonth(), today.getDate(), Math.floor(edge / 60), edge % 60);
+        if (date.getTime() <= now) date.setDate(date.getDate() + 1);
+        let when = date.getTime();   // the next one, today or tomorrow
         marks.push(when);
       });
     }
@@ -184,6 +189,7 @@
   function clear() {
     clearInterval(timer);
     timer = null;
+    delayTick = null;
     if (host) { host.remove(); host = null; shadow = null; }
   }
 
@@ -212,6 +218,7 @@
   /* ---- the four gates ---- */
 
   function showStop(L, title, note) {
+    clear();
     const box = veil();
     box.append(el('b', title), el('p', note));
     const row = el('div', '', 'row');
@@ -226,6 +233,7 @@
      settings and zero it. The friction is the point, but a dead end is not:
      starting another session is deliberate, and it is reachable. */
   function showSessionOver(s, L, ctx) {
+    clear();
     const box = veil();
     box.append(el('b', L.over), el('p', L.sessionWas + s.focus.sessionMinutes + L.minutes));
     pause();
@@ -268,7 +276,7 @@
       if (count === s.focus.sessionMinutes) button.className = 'go';
       button.addEventListener('click', async () => {
         confirmedFor = location.host;
-        await ctx.patch({ focus: { sessionEndsAt: Date.now() + count * 60000 } });
+        await ctx.patch({ focus: { sessionEndsAt: Date.now() + count * 60000, sessionMinutes: count } });
         clear();
       });
       picks.appendChild(button);
@@ -283,15 +291,20 @@
     box.append(count, el('p', L.waitNote));
     pause();
 
-    let left = s.focus.openDelay;
+    /* Against a deadline, not a tick count: a backgrounded tab on iOS runs
+       timers late or not at all, and counting ticks made a ten-second pause
+       last as long as the tab was hidden plus ten seconds. */
+    const until = Date.now() + s.focus.openDelay * 1000;
     clearInterval(timer);
-    timer = setInterval(() => {
-      left -= 1;
+    const tick = () => {
+      const left = Math.ceil((until - Date.now()) / 1000);
       count.textContent = String(Math.max(0, left));
       if (left > 0) return;
       clear();
-      if (video) video.play().catch(() => {});
-    }, 1000);
+      if (video && video.isConnected) video.play().catch(() => {});
+    };
+    timer = setInterval(tick, 1000);
+    delayTick = tick;
   }
 
   /* Reads the settings itself rather than taking them as an argument, because
@@ -299,6 +312,7 @@
      however old the last change was. */
   function gate(ctx) {
     const s = ctx.settings();
+    if (!s.enabled) { clear(); clearTimeout(gateTimer); gateTimer = null; return; }
     const L = strings(s);
     const now = Date.now();
 
@@ -335,8 +349,24 @@
 
   Costum.register({
     name: 'focus',
+    disable() { clear(); clearTimeout(gateTimer); gateTimer = null; delayedFor = ''; },
+    onNavigate() { clear(); clearTimeout(gateTimer); gateTimer = null; },
 
-    apply(s, ctx) { gate(ctx); },
+    apply(s, ctx) {
+      if (s.focus.openDelay === 0 && timer) clear();
+      gate(ctx);
+      if (!window.__costumFocusResume) {
+        window.__costumFocusResume = true;
+        /* Coming back to the tab: a session may have ended, a block lifted or
+           a countdown finished while the page was asleep and its timers with
+           it. Settle the countdown first, then let the gates decide. */
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) return;
+          if (delayTick) delayTick();
+          gate(ctx);
+        });
+      }
+    },
 
     actions: {
       /* Wired to the panel: block yourself for a while, right now. */

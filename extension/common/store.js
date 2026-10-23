@@ -8,18 +8,14 @@
     return root.CostumDefaults.withDefaults(bag && bag.settings);
   }
 
-  async function write(patch) {
-    const current = await read();
-    const next = root.CostumDefaults.merge(current, patch);
-    await api.storage.local.set({ settings: next });
-    return next;
+  async function request(type, payload) {
+    const reply = await api.runtime.sendMessage(Object.assign({ type }, payload));
+    if (!reply || !reply.ok) throw new Error(reply && reply.error || 'Settings could not be saved');
+    return reply.result;
   }
 
-  async function replace(settings) {
-    const next = root.CostumDefaults.withDefaults(settings);
-    await api.storage.local.set({ settings: next });
-    return next;
-  }
+  function write(patch) { return request('settings.set', { patch }); }
+  function replace(settings) { return request('settings.replace', { settings }); }
 
-  root.CostumStore = { read, write, replace };
+  root.CostumStore = { read, write, replace, request };
 })(typeof self !== 'undefined' ? self : this);

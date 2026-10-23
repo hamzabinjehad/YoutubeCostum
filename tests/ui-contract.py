@@ -57,6 +57,74 @@ for page in ('popup',):
           not missing, ', '.join(missing))
 
 
+# -------------------------------------------------------------------- the lock
+
+# The setting promises the password is asked for before the settings open. The
+# screen that asked lived in the settings page, and deleting that page left the
+# promise standing with only a disabled master switch behind it.
+popup_js_boot = read('extension/ui/popup/popup.js')
+check('popup: the password gates the boot, not just one switch',
+      re.search(r'if\s*\(\s*Lock\.isLocked\(settings\)\s*\)\s*gate\(\)', popup_js_boot) is not None)
+check('popup: the gate is a screen, not a veil over a rendered surface',
+      'function gate()' in popup_js_boot
+      and re.search(r'gate\(\);?\s*\n\s*else render\(\)', popup_js_boot) is not None)
+
+spec_lock = re.search(r"path: 'focus\.passwordHash'.*?\}", read('extension/common/spec.js'), re.S)
+check('the lock does not describe a page that no longer exists',
+      spec_lock and 'this page opens' not in spec_lock.group(0),
+      spec_lock and spec_lock.group(0)[:90])
+
+
+# ------------------------------------------------------------------ the phone
+
+# Without a viewport meta, iOS Safari lays the page out at the 980px desktop
+# default and scales the result down — the popup arrived as a thumbnail using
+# nine percent of an iPhone screen, and nothing in the project said so.
+popup_html = read('extension/ui/popup/popup.html')
+check('popup: it declares a viewport',
+      re.search(r'<meta[^>]+name="viewport"[^>]+width=device-width', popup_html) is not None)
+
+popup_css = read('extension/ui/popup/popup.css')
+narrow = re.search(r'@media([^{]*max-(?:device-)?width:\s*\d+px[^{]*)\{', popup_css)
+check('popup: it lays out for a narrow screen as well as for a popover',
+      narrow is not None)
+# The macOS popover is 340px wide. A width-only rule fires there too, and the
+# one that did took the whole surface down to its header.
+check('popup: the narrow layout is gated on touch, not on width alone',
+      narrow is None or 'pointer' in narrow.group(1), narrow and narrow.group(1).strip())
+# A popover's viewport is the popover, sized by the document, so a viewport
+# width rule is circular. On iPad the popover opened narrow, matched the phone
+# rule, asked for 100% of itself and settled at about 130px wide.
+check('popup: the phone layout keys on the device width, not the popover\'s own',
+      narrow is not None and 'device-width' in narrow.group(1)
+      and re.search(r'@media[^{]*pointer:\s*coarse[^{]*\(max-width', popup_css) is None,
+      narrow and narrow.group(1).strip())
+check('popup: touch gets targets a finger can hit',
+      re.search(r'@media[^{]*pointer:\s*coarse', popup_css) is not None)
+
+
+# ------------------------------------------------------- browser recovery copy
+
+# The extension's popup is shared by Safari and Chrome. A content script that
+# does not answer means a site permission has not been granted, but Safari's
+# address-bar remedy is wrong in Chrome, where the permission lives in the
+# Extensions menu. Keeping both strings and the runtime choice here prevents a
+# future copy change from restoring the misleading one-browser instruction.
+check('popup: site-access recovery names Safari and Chrome separately',
+      'notAllowedSafari' in popup_js_boot and 'notAllowedChrome' in popup_js_boot)
+check('popup: it chooses the site-access recovery for the current browser',
+      re.search(r'isChromeFamily\(\).*notAllowedChrome.*notAllowedSafari', popup_js_boot, re.S) is not None)
+# Checked on the iPad simulator: its Page Menu has no Manage Extensions, and
+# the site permission lives behind an Extensions button of its own. A Mac-worded
+# instruction on an iPhone or iPad sends the reader looking for a button that
+# is not there.
+check('popup: site-access recovery is worded for iPhone, iPad and Mac separately',
+      'notAllowedIphone' in popup_js_boot and 'notAllowedIpad' in popup_js_boot
+      and re.search(r"safariDevice\(\) === 'iphone'.*notAllowedIphone.*safariDevice\(\) === 'ipad'.*notAllowedIpad", popup_js_boot, re.S) is not None)
+check('popup: the search field has an accessible name',
+      "search.setAttribute('aria-label', t.searchPlaceholder)" in popup_js_boot)
+
+
 # --------------------------------------------------------------- string decks
 
 def deck(script, lang):

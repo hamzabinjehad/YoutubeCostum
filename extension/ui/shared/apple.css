@@ -27,6 +27,11 @@
 
   --accent: var(--blue);
   --accent-ink: #FFFFFF;
+  /* A switch carries no text, so its fill can be the system blue. A button with
+     a word on it cannot: white on #007AFF is 3.7:1 and on #0A84FF 3.65:1, both
+     under AA at this size. This is the accent darkened until white clears 4.5,
+     and it is what filled buttons use. */
+  --accent-fill: #0A6FDB;
   /* System blue is 4.02:1 on white — fine for a filled control, where the bar
      is 3:1, and under the 4.5:1 that blue *text* on a light ground needs. So
      surfaces keep Apple's blue and text takes a darker one. On a dark ground
@@ -108,6 +113,15 @@
   --t-body: 13px;
   --t-title: 15px;
   --t-display: 28px;
+
+  /* SF is tracked by size, not set once and scaled: small text is opened up so
+     it stays legible, large text is tightened so it does not fall apart. Every
+     step here was at `normal`, which is the browser's idea of spacing and not
+     the system's. Paired with each step so the two cannot drift. */
+  --track-caption: .006em;
+  --track-body: -.006em;
+  --track-title: -.014em;
+  --track-display: -.02em;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
   --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "Geeza Pro", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
@@ -116,6 +130,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --blue: #0A84FF;
+    --accent-fill: #0A6FDB;
     /* Dark mode had simply repeated the standard system blue here, so the
        adjustment this token exists to make was never made: 3.82:1 on the
        raised surface. This is Apple's own accessible blue for dark. */
@@ -157,8 +172,15 @@
 
 * { box-sizing: border-box; }
 
+/* Form controls do not inherit font-family: left alone they draw in whatever
+   the browser calls its UI font, and one of them did — the search field came
+   out in Arial next to a popover set in the system face. Per-control `font:
+   inherit` had been covering this everywhere it was remembered. */
+button, input, select, textarea { font-family: inherit; letter-spacing: inherit; }
+
 body {
   font-family: var(--font);
+  letter-spacing: var(--track-body);
   -webkit-font-smoothing: antialiased;
   font-synthesis: none;
   /* SF is a variable font on Apple platforms; let it pick its optical size. */
@@ -271,6 +293,11 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
   font: inherit; font-size: var(--t-body); line-height: 1.4;
   padding: 5px 6px; border-radius: 7px; cursor: pointer;
   font-variant-numeric: tabular-nums; white-space: nowrap;
+  /* "2×" has no letter in it, so in an Arabic popover the bidi algorithm took
+     the paragraph's direction and drew it as "×2". Plaintext lets each label
+     set its own direction: a number stays a number, an Arabic word stays
+     Arabic. */
+  unicode-bidi: plaintext;
   transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
 .segmented button:hover { background: var(--fill-3); }
@@ -332,8 +359,8 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 }
 .btn:hover { background: var(--fill-2); }
 .btn:active { transform: scale(.97); }
-.btn.filled { background: var(--accent); color: var(--accent-ink); font-weight: 590; }
-.btn.filled:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+.btn.filled { background: var(--accent-fill); color: var(--accent-ink); font-weight: 590; }
+.btn.filled:hover { background: color-mix(in srgb, var(--accent-fill) 88%, #000); }
 .btn.plain { background: none; color: var(--accent-text); padding-inline: 6px; }
 .btn.plain:hover { background: var(--fill-3); }
 .btn.danger { color: var(--danger); }

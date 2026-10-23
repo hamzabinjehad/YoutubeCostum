@@ -102,6 +102,13 @@
       lines.push('background log: unreachable — ' + e);
     }
 
+    lines.push('');
+    lines.push('--- switches on this page ---');
+    const health = self.CostumHealth;
+    if (!health || health.path !== location.pathname) lines.push('not checked yet (a few seconds after the page loads)');
+    else if (!health.dead.length) lines.push('every switch that is on is finding its target');
+    else lines.push('on but finding nothing (YouTube may have renamed it): ' + health.dead.join(', '));
+
     const shorts = self.CostumShortsInternals;
     if (shorts && shorts.probe) {
       lines.push('');
@@ -112,8 +119,48 @@
     return lines.join('\n');
   }
 
+  /* ---- switch health ----
+     A switch that is on and whose target this page always has, but that
+     matches nothing, means YouTube renamed something. Checked once the page
+     has settled, and confirmed a second time before it is reported, so a
+     slow page is not mistaken for a broken rule. The panel reads the result. */
+  const HEALTH_DELAY = 5000;
+  let healthTimer = 0;
+
+  function publishHealth(path, dead) {
+    self.CostumHealth = { path, dead, at: Date.now() };
+    window.dispatchEvent(new CustomEvent('costum:health', { detail: self.CostumHealth }));
+  }
+
+  function checkHealth(ctx, path, attempt) {
+    if (location.pathname !== path) return;
+    const s = ctx.effective ? ctx.effective() : ctx.settings();
+    if (!s.enabled) { publishHealth(path, []); return; }
+    const C = self.CostumCss;
+    const dead = C.deadSwitches(s, path, C.isMobileHost(location.hostname),
+      (sel) => document.querySelectorAll(sel).length);
+    if (dead.length && attempt === 0) {
+      healthTimer = setTimeout(() => checkHealth(ctx, path, 1), HEALTH_DELAY);
+      return;
+    }
+    publishHealth(path, dead);
+  }
+
+  function scheduleHealth(ctx) {
+    clearTimeout(healthTimer);
+    const path = location.pathname;
+    healthTimer = setTimeout(() => checkHealth(ctx, path, 0), HEALTH_DELAY);
+  }
+
   Costum.register({
     name: 'diagnostics',
+    onNavigate: (ctx) => {
+      // What was dead on the last page says nothing about this one.
+      publishHealth(location.pathname, []);
+      scheduleHealth(ctx);
+    },
+    apply: (s, ctx) => scheduleHealth(ctx),
+    disable: () => { clearTimeout(healthTimer); publishHealth(location.pathname, []); },
     actions: {
       diagnose: async (ctx) => {
         if (!ctx.panel) return;

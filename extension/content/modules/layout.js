@@ -2,6 +2,7 @@
   'use strict';
   const Costum = self.Costum;
 
+  let theaterTimer = null;
   function setTheater(on) {
     const flexy = document.querySelector('ytd-watch-flexy');
     if (!flexy) return;
@@ -18,7 +19,7 @@
       const s = ctx.settings();
       const root = document.documentElement;
       const player = document.querySelector('#player-container-outer, #player-theater-container');
-      if (!s.layout.miniOnScroll || !player || !location.pathname.startsWith('/watch')) {
+      if (!s.enabled || !s.layout.miniOnScroll || !player || !location.pathname.startsWith('/watch')) {
         root.removeAttribute('costum-mini');
         return;
       }
@@ -47,15 +48,24 @@
 
   Costum.register({
     name: 'layout',
+    disable() {
+      clearTimeout(theaterTimer);
+      ['costum-cinema', 'costum-zen', 'costum-mini'].forEach((name) => document.documentElement.removeAttribute(name));
+      document.documentElement.style.removeProperty('--costum-mini-hold');
+    },
     apply(s, ctx) {
+      clearTimeout(theaterTimer);
       miniOnScroll(ctx);
+      if (!s.layout.miniOnScroll) document.documentElement.removeAttribute('costum-mini');
       document.documentElement.toggleAttribute('costum-cinema', !!s.layout.cinema);
       // Re-decided per navigation: boot sets it once, and leaving a watch page
       // must take the header back rather than leave a chromeless feed.
       document.documentElement.toggleAttribute(
         'costum-zen', !!s.layout.zen && location.pathname.startsWith('/watch'));
       if (s.layout.autoTheater && location.pathname.startsWith('/watch')) {
-        setTimeout(() => setTheater(true), 500);
+        theaterTimer = setTimeout(() => {
+          if (ctx.settings().enabled && ctx.settings().layout.autoTheater && location.pathname.startsWith('/watch')) setTheater(true);
+        }, 500);
       }
     },
     actions: {

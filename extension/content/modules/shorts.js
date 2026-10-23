@@ -58,7 +58,7 @@
       const card = cardFor(link);
       if (!card || card.hasAttribute('costum-shorts')) return;
       card.setAttribute('costum-shorts', '');
-      card.style.setProperty('display', 'none', 'important');
+
     });
   }
 
@@ -108,7 +108,7 @@
         if (!item || item === scope || item.hasAttribute('costum-shorts')) return;
         if (holdsOtherVideos(item)) return;   // same guard: never hide a list
         item.setAttribute('costum-shorts', '');
-        item.style.setProperty('display', 'none', 'important');
+
       });
     });
   }
@@ -136,7 +136,7 @@
   function restore() {
     document.querySelectorAll('[costum-shorts]').forEach((el) => {
       el.removeAttribute('costum-shorts');
-      el.style.removeProperty('display');
+
     });
   }
 
@@ -201,12 +201,13 @@
 
   Costum.register({
     name: 'shorts',
+    disable() { clearTimeout(navTimer); navTimer = null; restore(); },
 
     apply(s) {
       const mode = s.declutter.shorts;
       if (interceptPlayer(mode)) return;
       if (mode === 'hide') { sweep(document); sweepNav(document); }
-      else restore();
+      else { clearTimeout(navTimer); navTimer = null; restore(); }
     },
 
     onMutation(nodes, s) {

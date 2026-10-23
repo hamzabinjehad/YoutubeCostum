@@ -1,4 +1,7 @@
 ObjC.import('Foundation');
+// $.exit lives in stdlib; without it a failing run crashed with a TypeError
+// instead of exiting 1, and was only reported as failing by accident.
+ObjC.import('stdlib');
 function read(p){ return ObjC.unwrap($.NSString.stringWithContentsOfFileEncodingError($(p), $.NSUTF8StringEncoding, null)); }
 
 var ROOT = ObjC.unwrap($.NSProcessInfo.processInfo.environment.objectForKey('COSTUM_ROOT')) + '/extension/';
@@ -6,6 +9,7 @@ var scope = {};
 new Function('self', read(ROOT + 'common/defaults.js'))(scope);
 new Function('self', read(ROOT + 'common/css.js'))(scope);
 new Function('self', read(ROOT + 'common/lock.js'))(scope);
+new Function('self', read(ROOT + 'common/bookmarks.js'))(scope);
 
 var D = scope.CostumDefaults, C = scope.CostumCss;
 var pass = 0, fail = 0;
@@ -218,6 +222,19 @@ ok('every setting has a rule behind it — selectors, or a declared style rule',
    form matched nothing and the switch hid no consent dialog at all. Keeping
    the bare tag pinned is the difference between a switch that works and one
    that only looks like it does. */
+/* Probed live: the related column is yt-lockup-view-model now, with not one id
+   inside it, and 26 cards on a watch page matched none of the id-based card
+   selectors — all nine "Video cards" switches did nothing there. Search still
+   draws the old ytd-video-renderer with its ids. Every card part has to know
+   both shapes until the migration finishes. */
+['title', 'channelAvatar', 'channelName', 'meta', 'duration', 'menu'].forEach(function (part) {
+  var sels = C.DECLUTTER.cards[part].join(' ');
+  ok('cards.' + part + ' reaches the new lockup card',
+     sels.indexOf('yt-lockup-view-model') !== -1, sels);
+  ok('cards.' + part + ' still reaches the old renderer',
+     C.DECLUTTER.cards[part].some(function (s) { return s.indexOf('yt-lockup-view-model') === -1; }), sels);
+});
+
 ok('hiding popups reaches the consent wall by its own tag',
    C.DECLUTTER.global.popups.indexOf('ytd-consent-bump-v2-lightbox') !== -1,
    C.DECLUTTER.global.popups.join(', '));
@@ -559,7 +576,9 @@ Object.keys(C.DECLUTTER.search).forEach(function (key) {
   if (HEADER_SCOPED.indexOf(key) !== -1) return;
   C.DECLUTTER.search[key].forEach(function (sel) {
     ok('search.' + key + ' stays on the results page',
-       sel.indexOf('ytd-search') === 0 || sel.indexOf('ytd-two-column-search-results-renderer') === 0, sel);
+       // ytm-search is the same page on m.youtube.com, checked live.
+       sel.indexOf('ytd-search') === 0 || sel.indexOf('ytm-search ') === 0
+       || sel.indexOf('ytd-two-column-search-results-renderer') === 0, sel);
   });
 });
 ok('the home chip bar is named by the home group and only reached there',
@@ -680,12 +699,259 @@ ok('the persistent key is gone — Safari warns about it',
 ok('the page bridge is web accessible, or Chrome will not inject it',
    manifest.web_accessible_resources[0].resources.indexOf('content/page/bridge.js') !== -1);
 
+// ---- the settings file: an envelope that can be refused, migrated and previewed ----
+var exported = D.packageExport(withKey, '1.0.0');
+ok('an export names its format and version', exported.format === 'costum-settings' && exported.version === D.EXPORT_VERSION);
+ok('an export carries no API key', exported.settings.summary.apiKey === '' && exported.settings.audio.boost === 3);
+ok('a valid export is accepted whole', D.validateImport(exported).ok === true);
+ok('an unrelated JSON file is refused', D.validateImport({ hello: 'world' }).error === 'not-costum'
+   && D.validateImport(null).error === 'not-costum' && D.validateImport([1, 2]).error === 'not-costum');
+ok('a file from a newer Costum is refused, not half-read',
+   D.validateImport(D.merge(exported, { version: D.EXPORT_VERSION + 1 })).error === 'newer-version');
+var legacy = D.validateImport(D.forSync(withKey));
+ok('the old bare-settings export still imports', legacy.ok && legacy.version === 1 && legacy.settings.audio.boost === 3);
+var corrupt = D.validateImport(D.merge(exported, { settings: { audio: { boost: 'loud' } } }));
+ok('one value of the wrong type refuses the whole file', corrupt.ok === false && corrupt.error === 'invalid-value' && corrupt.path === 'audio.boost');
+ok('a group that is not a group is refused', D.validateImport(D.merge(exported, { settings: { picture: 7 } })).error === 'invalid-value');
+var extra = D.validateImport(D.merge(exported, { settings: { futureThing: true, playback: { futureSpeed: 2 } } }));
+ok('unknown settings are reported and left out', extra.ok && extra.unknown.join(',') === 'futureThing,playback.futureSpeed' && extra.settings.futureThing === undefined);
+ok('a loop with null marks is still a valid loop', D.validateImport(D.merge(exported, { settings: { playback: { loop: { start: null, end: 12 } } } })).ok);
+ok('an import keeps the key this device already had',
+   D.fromSync(D.validateImport(exported).settings, withKey).summary.apiKey === 'sk-ant-secret');
+
+var changes = D.diffPaths(base, D.merge(base, { audio: { boost: 2 }, declutter: { watch: { comments: true } } }));
+ok('a diff names every leaf that would change', changes.join(',') === 'audio.boost,declutter.watch.comments');
+ok('a diff of equals is empty', D.diffPaths(base, D.withDefaults(null)).length === 0);
+ok('a diff sees a replaced array', D.diffPaths(base, D.merge(base, { playback: { speedPresets: [1] } })).join(',') === 'playback.speedPresets');
+
+// ---- modes of your own ----
+var tuned = D.merge(base, { playback: { defaultSpeed: 1.5, loop: { enabled: true, start: 1, end: 5, videoId: 'x' } },
+  declutter: { watch: { comments: true } }, summary: { apiKey: 'sk-secret' }, focus: { openDelay: 9 }, enabled: false });
+var saved = D.saveCustomMode(tuned, '  Lectures  ');
+var lectures = saved.customModes[0];
+ok('saving a mode records only what differs from the defaults',
+   lectures.patch.playback.defaultSpeed === 1.5 && lectures.patch.declutter.watch.comments === true
+   && lectures.patch.picture === undefined, JSON.stringify(lectures.patch));
+ok('the name is tidied', lectures.name === 'Lectures');
+ok('a mode never carries credentials, the master switch, focus or a loop',
+   lectures.patch.summary === undefined && lectures.patch.enabled === undefined
+   && lectures.patch.focus === undefined && (lectures.patch.playback.loop === undefined));
+ok('saving makes it the active mode, with nothing to undo',
+   saved.profile === 'custom:' + lectures.id && saved.profileUndo === null);
+ok('an empty name saves nothing', D.saveCustomMode(tuned, '   ') === tuned);
+
+var elsewhere = D.merge(D.withDefaults(saved), { profile: 'default', playback: { defaultSpeed: 2 }, picture: { brightness: 60 }, declutter: { watch: { comments: false } } });
+var previewed = D.modePreview(elsewhere, 'custom:' + lectures.id);
+ok('a preview names what the mode would change, including what it resets',
+   previewed.indexOf('playback.defaultSpeed') !== -1 && previewed.indexOf('picture.brightness') !== -1
+   && previewed.indexOf('declutter.watch.comments') !== -1, previewed.join(','));
+ok('a preview of the mode already in force is empty', D.modePreview(saved, 'custom:' + lectures.id).length === 0);
+ok('a preview of a built-in mode still works', D.modePreview(base, 'study').indexOf('playback.defaultSpeed') !== -1);
+
+var applied = D.applyProfile(elsewhere, 'custom:' + lectures.id);
+ok('applying a custom mode sets its values and resets the rest of its scope',
+   applied.playback.defaultSpeed === 1.5 && applied.picture.brightness === 100 && applied.declutter.watch.comments === true);
+ok('applying leaves what is out of scope alone', applied.focus.openDelay === 9 && applied.enabled === false && applied.summary.apiKey === 'sk-secret');
+var undone = D.applyProfile(applied, 'default');
+ok('deselecting a custom mode restores what it displaced',
+   undone.playback.defaultSpeed === 2 && undone.picture.brightness === 60 && undone.declutter.watch.comments === false);
+
+var renamed = D.renameCustomMode(saved, lectures.id, 'Talks');
+ok('renaming keeps the identity', renamed.customModes[0].id === lectures.id && renamed.customModes[0].name === 'Talks' && renamed.profile === saved.profile);
+var updated = D.saveCustomMode(D.merge(saved, { audio: { boost: 3 } }), 'ignored', lectures.id);
+ok('updating a mode by id replaces its patch and keeps its name',
+   updated.customModes.length === 1 && updated.customModes[0].patch.audio.boost === 3 && updated.customModes[0].name === 'Lectures');
+var doubled = D.duplicateCustomMode(saved, lectures.id);
+ok('duplicating makes a second mode with the same patch and a new id',
+   doubled.customModes.length === 2 && doubled.customModes[1].id !== lectures.id
+   && JSON.stringify(doubled.customModes[1].patch) === JSON.stringify(lectures.patch) && doubled.customModes[1].name === 'Lectures 2');
+var deleted = D.deleteCustomMode(saved, lectures.id);
+ok('deleting the active mode keeps the settings and clears the label',
+   deleted.customModes.length === 0 && deleted.profile === 'default' && deleted.playback.defaultSpeed === 1.5);
+ok('deleting a mode that is not active changes nothing else', D.deleteCustomMode(doubled, doubled.customModes[1].id).profile === saved.profile);
+ok('an unknown mode name is a revert, not a crash', D.applyProfile(saved, 'custom:nope').profile === 'default');
+ok('a mode survives the export check', D.validateImport(D.packageExport(saved)).ok && D.validateImport(D.packageExport(saved)).settings.customModes.length === 1);
+
+// ---- one channel, its own way ----
+ok('a /channel/ link yields the id', D.channelKey('/channel/UCabcdefghij123') === 'UCabcdefghij123'
+   && D.channelKey('https://www.youtube.com/channel/UCabcdefghij123/videos') === 'UCabcdefghij123');
+ok('a handle is accepted, lower-cased', D.channelKey('/@Some.Creator') === '@some.creator');
+ok('a bare name is not a key', D.channelKey('Some Creator') === '' && D.channelKey('') === '' && D.channelKey(null) === '');
+
+var withChan = D.setChannelPrefs(base, 'UC1', 'Lectures Channel', { speed: 1.5 });
+ok('a channel speed lands under its id', withChan.channelPrefs.UC1.speed === 1.5 && withChan.channelPrefs.UC1.name === 'Lectures Channel');
+var eff = D.withChannel(withChan, 'UC1');
+ok('on that channel the effective speed is the override', eff.playback.defaultSpeed === 1.5);
+ok('on another channel it is the global preference', D.withChannel(withChan, 'UC2').playback.defaultSpeed === 1
+   && D.withChannel(withChan, '') === withChan);
+ok('the override does not touch the stored settings', withChan.playback.defaultSpeed === 1);
+var withAudio = D.setChannelPrefs(withChan, 'UC1', '', { audio: { boost: 2, normalize: true, bass: 0, monoDownmix: false }, watch: { comments: true, related: false, liveChat: false, endScreens: false } });
+var effAll = D.withChannel(withAudio, 'UC1');
+ok('sound and clutter overrides apply too', effAll.audio.boost === 2 && effAll.audio.normalize === true && effAll.declutter.watch.comments === true);
+ok('an override never reaches the master switch, credentials or the lock',
+   D.withChannel(D.merge(withAudio, { enabled: false, summary: { apiKey: 'k' }, focus: { passwordHash: 'h' } }), 'UC1').enabled === false
+   && effAll.summary.apiKey === '' && effAll.focus.passwordHash === '');
+var modeOnTop = D.applyProfile(withAudio, 'study');
+ok('a mode sets the global speed and the channel still wins on its own channel',
+   modeOnTop.playback.defaultSpeed === 1.5 && D.withChannel(D.setChannelPrefs(modeOnTop, 'UC1', '', { speed: 0.75 }), 'UC1').playback.defaultSpeed === 0.75);
+var cleared = D.setChannelPrefs(withAudio, 'UC1', '', { speed: 0, audio: null, watch: null });
+ok('clearing every part removes the entry', cleared.channelPrefs.UC1 === undefined);
+ok('clearing one part keeps the others', D.setChannelPrefs(withAudio, 'UC1', '', { speed: 0 }).channelPrefs.UC1.audio.boost === 2);
+ok('a mode does not capture channel preferences', D.saveCustomMode(withAudio, 'x').customModes[0].patch.channelPrefs === undefined);
+ok('channel preferences pass the export check', D.validateImport(D.packageExport(withAudio)).ok);
+
+// ---- bookmarks: a moment, a note, and a file of their own ----
+var BM = scope.CostumBookmarks;
+var mark = BM.normalize({ videoId: 'dQw4w9WgXcQ', at: 83.7, note: '  the good bit  ', title: 'A   video' }, 1000);
+ok('a bookmark is tidied on the way in', mark.at === 83 && mark.note === 'the good bit' && mark.title === 'A video' && mark.createdAt === 1000 && /^b/.test(mark.id));
+ok('a bookmark without a video is refused', BM.normalize({ at: 3 }) === null && BM.normalize({ videoId: 'not a valid id!', at: 3 }) === null);
+ok('a negative or missing time is refused', BM.normalize({ videoId: 'dQw4w9WgXcQ', at: -1 }) === null && BM.normalize({ videoId: 'dQw4w9WgXcQ' }) === null);
+ok('a note is clipped to the limit', BM.normalize({ videoId: 'dQw4w9WgXcQ', at: 1, note: 'x'.repeat(900) }).note.length === BM.LIMITS.note);
+ok('a link opens the video at the second', BM.link(mark) === 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=83s');
+ok('the clock reads like YouTube', BM.clock(83) === '1:23' && BM.clock(3725) === '1:02:05');
+var library = [
+  BM.normalize({ id: 'one', videoId: 'dQw4w9WgXcQ', at: 10, note: 'Intro', title: 'Talk', channel: 'Physics', createdAt: 1 }),
+  BM.normalize({ id: 'two', videoId: 'dQw4w9WgXcQ', at: 5, note: 'Setup', title: 'Talk', createdAt: 2 }),
+  BM.normalize({ id: 'three', videoId: 'aaaaaaaaaaa', at: 40, note: 'Chorus', title: 'Song', createdAt: 3 })
+];
+ok('a video lists its own marks in time order', BM.forVideo(library, 'dQw4w9WgXcQ').map(function (b) { return b.id; }).join() === 'two,one');
+ok('search covers title, channel and note, newest first',
+   BM.search(library, 'phys').map(function (b) { return b.id; }).join() === 'one'
+   && BM.search(library, 'chorus')[0].id === 'three' && BM.search(library, '').map(function (b) { return b.id; }).join() === 'three,two,one');
+var bmFile = BM.packageExport(library);
+ok('the bookmark file names its own format', bmFile.format === 'costum-bookmarks' && bmFile.version === BM.VERSION && bmFile.items.length === 3);
+ok('a settings file is not a bookmark file, and vice versa',
+   BM.validateImport(D.packageExport(base)).error === 'not-bookmarks' && D.validateImport(bmFile).error === 'not-costum');
+ok('a newer bookmark file is refused', BM.validateImport(D.merge(bmFile, { version: 99 })).error === 'newer-version');
+var checked = BM.validateImport({ format: 'costum-bookmarks', version: 1, items: [library[0], { junk: true }, { videoId: 'aaaaaaaaaaa', at: 40, note: 'dup by moment' }, { videoId: 'bbbbbbbbbbb', at: 1 }] });
+ok('unreadable entries are counted, not imported', checked.ok && checked.items.length === 3 && checked.skipped === 1);
+var mergedBm = BM.mergeImport(library, checked.items);
+ok('a merge skips the same id and the same moment, and adds the rest',
+   mergedBm.added === 1 && mergedBm.duplicates === 2 && mergedBm.items.length === 4);
+var fullLib = [];
+for (var i = 0; i < BM.LIMITS.items; i++) fullLib.push(BM.normalize({ videoId: 'v' + String(i).padStart(10, '0'), at: i }));
+ok('a full library refuses the overflow rather than dropping old entries',
+   BM.mergeImport(fullLib, [BM.normalize({ videoId: 'zzzzzzzzzzz', at: 1 })]).refused === 1 && BM.mergeImport(fullLib, [BM.normalize({ videoId: 'zzzzzzzzzzz', at: 1 })]).items.length === BM.LIMITS.items);
+
 // ---- the settings lock ----
 var Lock = scope.CostumLock;
 ok('a fresh install is not locked', Lock.isLocked(base) === false);
 ok('a stored hash locks the settings', Lock.isLocked(D.merge(base, { focus: { passwordHash: 'abc$def' } })) === true);
 ok('an empty hash does not lock', Lock.isLocked(D.merge(base, { focus: { passwordHash: '' } })) === false);
 ok('a missing settings object does not throw', Lock.isLocked(null) === false);
+
+// ---- the phone: m.youtube.com ----
+// Every mobile selector below was matched on live m.youtube.com (home, watch,
+// search, a channel, Shorts). Each is pinned so a tidy-up cannot drop it.
+ok('page names cover the pages the mobile rules scope to',
+   C.pageName('/') === 'home' && C.pageName('/watch') === 'watch' && C.pageName('/results') === 'search'
+   && C.pageName('/@mkbhd') === 'channel' && C.pageName('/shorts/abc') === 'shorts'
+   && C.pageName('/feed/subscriptions') === 'subscriptions' && C.pageName('/feed/you') === 'library'
+   && C.pageName('/premium') === 'other');
+ok('only m.youtube.com is the mobile host',
+   C.isMobileHost('m.youtube.com') && !C.isMobileHost('www.youtube.com') && !C.isMobileHost('youtube.com') && !C.isMobileHost(''));
+
+ok('on desktop every setting is offered',
+   C.worksOn('declutter.sidebar.hideAll', false) && C.worksOn('playback.wheelOnPlayer', false) && C.worksOn('shortcuts.bookmark', false));
+ok('on the phone, desktop-only page switches are not offered',
+   !C.worksOn('declutter.sidebar.hideAll', true) && !C.worksOn('declutter.watch.playButton', true)
+   && !C.worksOn('declutter.search.suggestions', true));
+ok('on the phone, mouse, keyboard and desktop-layout settings are not offered',
+   !C.worksOn('playback.wheelOnPlayer', true) && !C.worksOn('shortcuts.bookmark', true)
+   && !C.worksOn('layout.widePlayer', true) && !C.worksOn('layout.cinema', true));
+ok('on the phone, what acts on the video or the whole page is offered',
+   C.worksOn('playback.defaultSpeed', true) && C.worksOn('audio.boost', true) && C.worksOn('picture.brightness', true)
+   && C.worksOn('declutter.shorts', true) && C.worksOn('block.keywords', true) && C.worksOn('layout.zen', true));
+
+var onMobileMissing = [];
+Object.keys(C.ON_MOBILE).forEach(function (g) {
+  C.ON_MOBILE[g].forEach(function (k) { if (!C.DECLUTTER[g] || !C.DECLUTTER[g][k]) onMobileMissing.push(g + '.' + k); });
+});
+ok('every switch offered on the phone exists', onMobileMissing.length === 0, onMobileMissing.join(', '));
+
+// Elements the mobile site shares with desktop (checked live), plus mobile-only ones.
+var MOBILE_HANDLES = /ytm-|ad-slot-renderer|reel-action-bar-view-model|comments-entry-point-teaser-view-model|like-button-view-model|yt-tab-shape|yt-tab-group-shape|yt-page-header-renderer|yt-image-banner-view-model|yt-content-metadata-view-model|yt-description-preview-view-model|yt-flexible-actions-view-model|yt-shorts-video-title-view-model|yt-reel-channel-bar-view-model|yt-searchbox|yt-lockup-view-model/;
+var noHandle = [];
+Object.keys(C.ON_MOBILE).forEach(function (g) {
+  C.ON_MOBILE[g].forEach(function (k) {
+    var sels = (C.DECLUTTER[g] || {})[k] || [];
+    if (!sels.some(function (x) { return MOBILE_HANDLES.test(x); })) noHandle.push(g + '.' + k);
+  });
+});
+ok('every switch offered on the phone has a selector that exists on the mobile page', noHandle.length === 0, noHandle.join(', '));
+
+var PINNED_MOBILE = {
+  'watch.comments': 'yt-video-metadata-carousel-view-model:has(comments-entry-point-teaser-view-model)',
+  'watch.related': 'ytm-item-section-renderer[section-identifier="related-items"]',
+  'watch.actionBar': 'ytm-slim-video-action-bar-renderer .slim_video_action_bar_renderer_button',
+  'watch.subscribe': 'ytm-slim-video-action-bar-renderer .slim-subscribe-button',
+  'watch.videoTitle': 'ytm-slim-video-information-renderer .slim-video-information-title',
+  'watch.viewsAndDate': 'ytm-slim-video-information-renderer .slim-video-information-subtitle',
+  'home.feed': 'html[costum-page="home"] ytm-rich-grid-renderer',
+  'home.chips': 'html[costum-page="home"] ytm-feed-filter-chip-bar-renderer',
+  'search.filters': 'ytm-search ytm-search-sub-menu-renderer',
+  'search.channels': 'ytm-search ytm-compact-channel-renderer',
+  'shortsPlayer.overlay': 'ytm-reel-player-overlay-renderer',
+  'shortsPlayer.actions': 'reel-action-bar-view-model',
+  'cards.title': 'ytm-media-item .media-item-headline',
+  'cards.channelName': 'ytm-media-item .ytmBadgeAndBylineRendererItemByline:first-child',
+  'cards.title_channelPage': 'ytm-compact-video-renderer .YtmCompactMediaItemHeadline',
+  'channel.featured': 'ytm-channel-featured-video-renderer',
+  'header.hideAll': 'ytm-mobile-topbar-renderer'
+};
+var unpinned = Object.keys(PINNED_MOBILE).filter(function (key) {
+  var parts = key.replace(/_.*$/, '').split('.');
+  return (C.DECLUTTER[parts[0]][parts[1]] || []).indexOf(PINNED_MOBILE[key]) === -1;
+});
+ok('the live-verified mobile selectors are all still there', unpinned.length === 0, unpinned.join(', '));
+ok('mobile comments are hidden in both of their entry-point forms (teaser and message, both seen live)',
+   C.DECLUTTER.watch.comments.indexOf('yt-video-metadata-carousel-view-model:has(yt-comments-entry-point-message-view-model)') !== -1);
+ok('mobile ads are hidden with the other banner ads',
+   C.DECLUTTER.global.bannerAds.indexOf('ad-slot-renderer') !== -1 && C.DECLUTTER.global.bannerAds.indexOf('ytm-companion-slot') !== -1);
+ok('mobile home rules scope themselves to the home page, not every grid',
+   C.DECLUTTER.home.feed.filter(function (x) { return /ytm-/.test(x); }).every(function (x) { return x.indexOf('html[costum-page="home"]') === 0; }));
+
+var zenCss = C.buildLayoutCss(D.merge(base, { layout: { zen: true } }));
+ok('"Just the video" clears the mobile watch page too',
+   /ytm-mobile-topbar-renderer/.test(zenCss) && /ytm-single-column-watch-next-results-renderer/.test(zenCss));
+
+var blockSrc = read(ROOT + 'content/modules/contentblock.js');
+ok('keyword blocking reads titles on mobile channel pages',
+   blockSrc.indexOf("'.YtmCompactMediaItemHeadline'") !== -1);
+ok('channel blocking reads the channel from the mobile byline',
+   blockSrc.indexOf("ytm-badge-and-byline-renderer .ytmBadgeAndBylineRendererItemByline:first-child") !== -1);
+var bootSrc = read(ROOT + 'content/boot.js'), routerSrc = read(ROOT + 'content/router.js');
+ok('the page is marked at load and on every navigation',
+   /setAttribute\('costum-page'/.test(bootSrc) && /markPage\(\)/.test(routerSrc));
+
+// ---- switch health: on, but finding nothing ----
+var none = function () { return 0; }, all = function () { return 1; };
+var healthOn = D.merge(base, { declutter: { watch: { related: true, liveChat: true, playButton: true } } });
+ok('a structural switch that matches nothing is reported',
+   C.deadSwitches(healthOn, '/watch', false, none).indexOf('watch.related') !== -1);
+ok('a switch that matches is not reported', C.deadSwitches(healthOn, '/watch', false, all).length === 0);
+ok('a switch that is off is never reported', C.deadSwitches(base, '/watch', false, none).length === 0);
+ok('situational targets (live chat) are not checked — they come and go with the video',
+   C.deadSwitches(healthOn, '/watch', false, none).indexOf('watch.liveChat') === -1);
+ok('a switch for another page is not checked here',
+   C.deadSwitches(healthOn, '/results', false, none).indexOf('watch.related') === -1);
+ok('on the phone, desktop-only targets are not checked',
+   C.deadSwitches(healthOn, '/watch', true, none).indexOf('watch.playButton') === -1
+   && C.deadSwitches(healthOn, '/watch', false, none).indexOf('watch.playButton') !== -1);
+ok('one selector matching is enough',
+   C.deadSwitches(healthOn, '/watch', true, function (sel) { return /section-identifier="related-items"/.test(sel) ? 1 : 0; }).indexOf('watch.related') === -1);
+ok('a selector the browser rejects counts as no match, not a crash',
+   C.deadSwitches(healthOn, '/watch', false, function () { throw new Error('bad selector'); }).indexOf('watch.related') !== -1);
+var structuralMissing = [];
+Object.keys(C.STRUCTURAL).forEach(function (g) { C.STRUCTURAL[g].forEach(function (k) { if (!C.DECLUTTER[g] || !C.DECLUTTER[g][k]) structuralMissing.push(g + '.' + k); }); });
+ok('every checked switch exists', structuralMissing.length === 0, structuralMissing.join(', '));
+
+// ---- the panel's first-run welcome ----
+var panelSrc = read(ROOT + 'content/panel.js');
+ok('the welcome\'s mode buttons have their own control ids, not the Modes section\'s',
+   /setAttribute\('data-control-id', 'welcome:' \+ name\)/.test(panelSrc));
+ok('the one-time welcome is remembered and never shown over a chosen mode',
+   /storage\.local\.set\(\{ welcomed: true \}\)/.test(panelSrc) && /if \(welcomed \|\| s\.profile !== 'default'\) return null;/.test(panelSrc));
 
 console.log('');
 console.log(pass + ' passed, ' + fail + ' failed');

@@ -12,12 +12,22 @@
   'use strict';
   const { DEFAULTS } = root.CostumDefaults;
 
+  /* "1.5×" wherever a speed is printed: the presets, the readout and the
+     summary of changes all said the same number three different ways. */
+  const speed = (v) => v.toFixed(2).replace(/\.?0+$/, '') + '×';
+
+  /* Option labels are [value, en, ar]; the Arabic is omitted where the label is
+     a number or a name that does not translate. */
+  function optionLabel(option, lang) {
+    return (lang === 'ar' && option[2]) || option[1];
+  }
+
   const SPEC = {
     player: [
       { heading: true, en: 'Speed', ar: 'السرعة' },
-      { path: 'playback.defaultSpeed', type: 'range', min: 0.25, max: 4, step: 0.05, fmt: (v) => v.toFixed(2) + '×',
+      { path: 'playback.defaultSpeed', type: 'range', min: 0.25, max: 4, step: 0.05, fmt: (v) => speed(v),
         en: ['Default speed', 'Applied automatically when a video starts.'], ar: ['السرعة الافتراضية', 'بتنطبق تلقائياً مع بداية كل فيديو.'] },
-      { path: 'playback.musicSpeed', type: 'range', min: 0, max: 2, step: 0.05, fmt: (v) => (v === 0 ? 'off' : v.toFixed(2) + '×'),
+      { path: 'playback.musicSpeed', type: 'range', min: 0, max: 2, step: 0.05, fmt: (v, L) => (v === 0 ? (L && L.off) || 'off' : speed(v)),
         en: ['Speed on music channels', 'Zero leaves music at normal speed.'], ar: ['السرعة على قنوات الموسيقى', 'صفر يعني تبقى الموسيقى بسرعتها الطبيعية.'] },
       { path: 'playback.speedStep', type: 'range', min: 0.01, max: 0.5, step: 0.01, fmt: (v) => '±' + v.toFixed(2),
         en: ['Speed step', 'How much each keypress or wheel notch moves.'], ar: ['خطوة السرعة', 'مقدار التغيير مع كل ضغطة أو حركة عجلة.'] },
@@ -25,18 +35,18 @@
       { path: 'playback.speedPresets', type: 'numbers', min: 0.07, max: 16, placeholder: '0.5, 1, 1.5, 2',
         en: ['Speed buttons in the panel', 'The row of speeds the in-page panel offers. Sorted for you.'],
         ar: ['أزرار السرعة باللوحة', 'صف السرعات اللي بتظهر بلوحة الصفحة. بينترتب تلقائياً.'] },
-      { path: 'playback.wheelOnPlayer', type: 'select', options: [['none', 'Off'], ['speed', 'Speed'], ['volume', 'Volume']],
+      { path: 'playback.wheelOnPlayer', type: 'select', options: [['none', 'Off', 'مطفي'], ['speed', 'Speed', 'السرعة'], ['volume', 'Volume', 'الصوت']],
         en: ['Mouse wheel over the player', ''], ar: ['عجلة الماوس فوق المشغّل', ''] },
       { heading: true, en: 'Quality and format', ar: 'الجودة والصيغة' },
       { path: 'playback.forceQuality', type: 'select',
-        options: [['auto', 'Auto'], ['highres', '4K+'], ['hd2160', '2160p'], ['hd1440', '1440p'], ['hd1080', '1080p'], ['hd720', '720p'], ['large', '480p'], ['medium', '360p']],
+        options: [['auto', 'Auto', 'تلقائي'], ['highres', '4K+'], ['hd2160', '2160p'], ['hd1440', '1440p'], ['hd1080', '1080p'], ['hd720', '720p'], ['large', '480p'], ['medium', '360p']],
         en: ['Force quality', 'Falls back to the best level the video actually offers.'], ar: ['فرض الجودة', 'بينزل لأعلى جودة متاحة فعلياً بالفيديو.'] },
       { path: 'playback.blockHighFramerate', type: 'bool',
         en: ['Block 48/60 fps formats', 'Cuts battery drain on laptops.'], ar: ['منع صيغ 48/60 إطار', 'بيقلل استهلاك البطارية على اللابتوب.'] },
       { path: 'playback.preferAvc', type: 'bool',
         en: ['Prefer H.264 over VP9/AV1', 'Uses the Mac hardware decoder.'], ar: ['تفضيل H.264 على VP9/AV1', 'بيستخدم فك التشفير العتادي بالماك.'] },
       { heading: true, en: 'Autoplay', ar: 'التشغيل التلقائي' },
-      { path: 'playback.autoplay', type: 'select', options: [['default', 'Leave alone'], ['pause', 'Always pause'], ['play', 'Always play']],
+      { path: 'playback.autoplay', type: 'select', options: [['default', 'Leave alone', 'خلّيه'], ['pause', 'Always pause', 'وقّف دايماً'], ['play', 'Always play', 'شغّل دايماً']],
         en: ['Autoplay', ''], ar: ['التشغيل التلقائي', ''] },
       { path: 'playback.pauseBackgroundTabs', type: 'bool', en: ['Pause when the tab is hidden', ''], ar: ['إيقاف مؤقت لما التبويب يختفي', ''] },
       { heading: true, en: 'Ads', ar: 'الإعلانات' },
@@ -119,12 +129,12 @@
         en: ['Strip the unread count from the tab title', 'The "(3)" YouTube puts in front of the page title.'],
         ar: ['شيل عدد الإشعارات من عنوان التبويب', 'الـ«(3)» اللي بيحطها يوتيوب قبل عنوان الصفحة.'] },
       { path: 'declutter.font', type: 'select',
-        options: [['', 'YouTube default'], ['system-ui, sans-serif', 'System'],
-                  ['Georgia, serif', 'Serif'], ['ui-monospace, Menlo, monospace', 'Monospace'],
+        options: [['', 'YouTube default', 'خط يوتيوب'], ['system-ui, sans-serif', 'System', 'خط النظام'],
+                  ['Georgia, serif', 'Serif', 'Serif'], ['ui-monospace, Menlo, monospace', 'Monospace', 'Monospace'],
                   ['"Comic Sans MS", cursive', 'Comic Sans']],
         en: ['Font', 'Applies across every YouTube page.'],
         ar: ['الخط', 'بينطبق على كل صفحات يوتيوب.'] },
-      { path: 'declutter.thumbnails', type: 'select', options: [['normal', 'Normal'], ['grayscale', 'Grayscale'], ['blur', 'Blur until hover'], ['hide', 'Hide']],
+      { path: 'declutter.thumbnails', type: 'select', options: [['normal', 'Normal', 'عادية'], ['grayscale', 'Grayscale', 'رمادية'], ['blur', 'Blur until hover', 'مموّهة لحد ما تأشّر'], ['hide', 'Hide', 'إخفاء']],
         en: ['Thumbnails', ''], ar: ['الصور المصغّرة', ''] },
       { path: 'declutter.global.infiniteScroll', type: 'bool',
         en: ['Stop infinite scrolling', 'The feed ends instead of loading forever.'], ar: ['إيقاف التمرير اللانهائي', 'الخلاصة بتنتهي بدل ما تكمّل للأبد.'] },
@@ -212,7 +222,7 @@
 
       { heading: true, surface: 'shorts', en: 'Shorts player', ar: 'مشغّل Shorts' },
       { heading: true, en: 'Access', ar: 'الوصول' },
-      { path: 'declutter.shorts', type: 'select', options: [['show', 'Show'], ['hide', 'Hide'], ['asVideo', 'Open as normal videos']],
+      { path: 'declutter.shorts', type: 'select', options: [['show', 'Show', 'إظهار'], ['hide', 'Hide', 'إخفاء'], ['asVideo', 'Open as normal videos', 'افتحها كفيديوهات عادية']],
         en: ['Shorts', ''], ar: ['Shorts', ''] },
       { path: 'declutter.shortsScroll', type: 'bool', invert: true,
         en: ['Stop scrolling between Shorts', ''], ar: ['إيقاف التمرير بين الـ Shorts', ''] },
@@ -352,9 +362,12 @@
     block: [
       { heading: true, en: 'Content filter', ar: 'فلتر المحتوى' },
       { path: 'block.keywords', type: 'list', placeholder: 'reaction\ntier list',
-        en: ['Blocked title keywords', 'One per line, matched anywhere in the title.'], ar: ['كلمات محظورة بالعنوان', 'كلمة بكل سطر، بتنطابق بأي مكان بالعنوان.'] },
+        en: ['Title contains', 'Text matching: one per line, found anywhere in the title.'], ar: ['العنوان يحتوي', 'مطابقة نصية: كلمة بكل سطر، بتنطابق بأي مكان بالعنوان.'] },
+      { path: 'block.exactChannels', type: 'list', placeholder: 'UC… or @handle or the exact channel name',
+        en: ['Blocked channels (exact)', 'A channel id, an @handle, or a whole channel name. “Block this channel” in the panel adds the one you are watching.'],
+        ar: ['قنوات محظورة (مطابقة تامة)', 'معرّف القناة، أو @المعرّف، أو اسم القناة كاملاً. «احظر هالقناة» باللوحة بتضيف القناة اللي عم تتفرج عليها.'] },
       { path: 'block.channels', type: 'list', placeholder: 'Channel name',
-        en: ['Blocked channels', 'One per line.'], ar: ['قنوات محظورة', 'قناة بكل سطر.'] },
+        en: ['Channel name contains', 'Text matching: one per line, found anywhere in the channel name.'], ar: ['اسم القناة يحتوي', 'مطابقة نصية: قناة بكل سطر، بتنطابق بأي مكان بالاسم.'] },
       { path: 'block.regex', type: 'text', placeholder: '(clickbait|shocking)',
         en: ['Blocked by regular expression', 'An invalid pattern is ignored, never applied half-way.'], ar: ['حظر بتعبير نمطي', 'النمط الخاطئ بينتجاهل، وما بينطبق نص تطبيق.'] },
       { path: 'block.hideWatched', type: 'bool', en: ['Hide videos already watched', ''], ar: ['إخفاء الفيديوهات المتفرّجة', ''] },
@@ -372,17 +385,17 @@
     modesty: [
       { heading: true, en: 'Cover imagery of people', ar: 'تغطية صور الأشخاص' },
       { path: 'modesty.images', type: 'select',
-        options: [['off', 'Show normally'], ['blur', 'Blur'], ['hide', 'Hide']],
+        options: [['off', 'Show normally', 'إظهار عادي'], ['blur', 'Blur', 'تمويه'], ['hide', 'Hide', 'إخفاء']],
         en: ['Thumbnails, avatars and banners', 'Covers pictures of people across every page.'],
         ar: ['الصور المصغّرة والأفاتار والبانرات', 'بتغطي صور الأشخاص بكل الصفحات.'] },
       { path: 'modesty.video', type: 'select',
-        options: [['off', 'Show normally'], ['blur', 'Blur'], ['audio', 'Sound only']],
+        options: [['off', 'Show normally', 'إظهار عادي'], ['blur', 'Blur', 'تمويه'], ['audio', 'Sound only', 'الصوت بس']],
         en: ['The video itself', 'Sound only blanks the picture completely; audio keeps playing.'],
         ar: ['الفيديو نفسه', '«الصوت فقط» بيطفي الصورة تماماً والصوت بيضل شغّال.'] },
       { path: 'modesty.strength', type: 'range', min: 4, max: 40, step: 1, fmt: (v) => v + ' px',
         en: ['How heavy the blur is', ''], ar: ['قوة التغطية', ''] },
       { path: 'modesty.reveal', type: 'select',
-        options: [['hover', 'While pointed at'], ['never', 'Never']],
+        options: [['hover', 'While pointed at', 'وقت التأشير'], ['never', 'Never', 'أبداً']],
         en: ['Uncover an image', 'Only affects blurred images, never the video.'],
         ar: ['كشف الصورة', 'بينطبق على الصور المغطّاة بس، مش على الفيديو.'] }
     ],
@@ -392,22 +405,22 @@
         en: ['Show the button on YouTube', 'Without it, the panel opens only from its keyboard shortcut.'],
         ar: ['إظهار الزر على يوتيوب', 'بدونه، اللوحة بتنفتح بس من اختصار الكيبورد.'] },
       { path: 'panel.corner', type: 'select',
-        options: [['bottom-right', 'Bottom right'], ['bottom-left', 'Bottom left'],
-                  ['top-right', 'Top right'], ['top-left', 'Top left']],
+        options: [['bottom-right', 'Bottom right', 'تحت يمين'], ['bottom-left', 'Bottom left', 'تحت يسار'],
+                  ['top-right', 'Top right', 'فوق يمين'], ['top-left', 'Top left', 'فوق يسار']],
         en: ['Where the button sits', 'Move it if it covers something you need.'],
         ar: ['مكان الزر', 'حرّكه إذا كان بيغطي شي بتحتاجه.'] }
     ],
     summary: [
       { heading: true, en: 'Video summaries', ar: 'ملخصات الفيديو' },
-      { path: 'summary.enabled', type: 'bool', en: ['Enable video summaries', ''], ar: ['تفعيل ملخصات الفيديو', ''] },
+      { path: 'summary.enabled', type: 'bool', en: ['Enable video summaries', 'Uses your Claude API key. Long videos can use up to 5 paid requests; limited coverage is labeled.'], ar: ['تفعيل ملخصات الفيديو', 'يستخدم مفتاح Claude API. قد يستخدم الفيديو الطويل حتى 5 طلبات مدفوعة، مع توضيح التغطية الجزئية.'] },
       { path: 'summary.apiKey', type: 'password', placeholder: 'sk-ant-...',
         en: ['Your Claude API key', 'Stored on this device only and sent straight to Anthropic. We never see it.'],
         ar: ['مفتاح Claude API تبعك', 'بينحفظ على هالجهاز بس وبينبعت مباشرة لأنثروبيك. إحنا ما منشوفه.'] },
       { path: 'summary.pageButton', type: 'bool',
         en: ['Add a Summarize button to the video page', ''], ar: ['إضافة زر تلخيص لصفحة الفيديو', ''] },
-      { path: 'summary.model', type: 'select', options: [['claude-opus-5', 'Opus 5'], ['claude-sonnet-5', 'Sonnet 5'], ['claude-haiku-4-5-20251001', 'Haiku 4.5']],
+      { path: 'summary.model', type: 'select', options: [['claude-opus-5', 'Opus 5'], ['claude-sonnet-5', 'Sonnet 5'], ['claude-haiku-4-5', 'Haiku 4.5']],
         en: ['Model', 'Haiku is the cheapest; Opus reads long videos best.'], ar: ['الموديل', 'Haiku الأرخص، و Opus الأفضل للفيديوهات الطويلة.'] },
-      { path: 'summary.language', type: 'select', options: [['auto', 'Match the video'], ['ar', 'Arabic'], ['en', 'English']],
+      { path: 'summary.language', type: 'select', options: [['auto', 'Match the video', 'بلغة الفيديو'], ['ar', 'Arabic', 'العربية'], ['en', 'English', 'الإنجليزية']],
         en: ['Summary language', ''], ar: ['لغة الملخص', ''] }
     ],
     focus: [
@@ -418,7 +431,7 @@
         en: ['Confirm before entering YouTube', 'Nothing loads until you say yes.'],
         ar: ['تأكيد قبل الدخول ليوتيوب', 'ما بيحمّل شي لحد ما توافق.'] },
       { path: 'focus.sessionMinutes', type: 'select',
-        options: [['0', 'No limit'], ['5', '5 min'], ['10', '10 min'], ['15', '15 min'], ['30', '30 min'], ['60', '60 min']],
+        options: [['0', 'No limit', 'بلا حد'], ['5', '5 min', '٥ دقايق'], ['10', '10 min', '١٠ دقايق'], ['15', '15 min', '١٥ دقيقة'], ['30', '30 min', '٣٠ دقيقة'], ['60', '60 min', '٦٠ دقيقة']],
         numeric: true,
         en: ['Session length', 'Asked for at the door, then the session ends on its own.'],
         ar: ['طول الجلسة', 'بتنسأل عند الدخول، وبعدين الجلسة بتنتهي لحالها.'] },
@@ -431,8 +444,8 @@
       { path: 'focus.scheduleTo', type: 'time', en: ['To', ''], ar: ['إلى', ''] },
       { heading: true, en: 'Lock', ar: 'القفل' },
       { path: 'focus.passwordHash', type: 'lock',
-        en: ['Lock these settings', 'Asked for before this page opens. Stored as a salted hash, never as text.'],
-        ar: ['قفل هالإعدادات', 'بتنطلب قبل ما تفتح هالصفحة. بتنحفظ كبصمة مملّحة، مش كنص.'] }
+        en: ['Lock these settings', 'Asked for every time the popup opens. Stored as a salted hash, never as text.'],
+        ar: ['قفل هالإعدادات', 'بتنطلب كل ما تفتح الإكستنشن. بتنحفظ كبصمة مملّحة، مش كنص.'] }
     ],
     /* Written out rather than generated from the key names: splitting camelCase
        gave "Pip" and "Loop Start", and the Arabic column fell back to the raw
@@ -451,7 +464,8 @@
           pip: ['Picture in Picture', 'صورة داخل صورة'],
           loopStart: ['Mark loop start (A)', 'بداية الحلقة (أ)'],
           loopEnd: ['Mark loop end (B)', 'نهاية الحلقة (ب)'],
-          summarize: ['Summarize the video', 'لخّص الفيديو']
+          summarize: ['Summarize the video', 'لخّص الفيديو'],
+          bookmark: ['Bookmark this moment', 'علّم هاللحظة']
         };
         // A shortcut added later still gets a readable label rather than nothing.
         const fallback = name.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase());
@@ -513,5 +527,5 @@
     return table[key] || key;
   }
 
-  root.CostumSpec = { SPEC, SURFACE_NAMES, surfaceName };
+  root.CostumSpec = { SPEC, SURFACE_NAMES, surfaceName, optionLabel };
 })(typeof self !== 'undefined' ? self : this);

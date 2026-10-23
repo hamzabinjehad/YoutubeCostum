@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
+  <!-- Without this, iOS Safari lays the popup out at the 980px desktop default
+       and scales the result down: the whole surface arrived as a thumbnail. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Costum</title>
   <link rel="stylesheet" href="../shared/apple.css">
   <link rel="stylesheet" href="popup.css">
@@ -24,56 +27,179 @@
   <!-- Pinned. Search is the fast path to any of 238 settings, and it used to
        start 624px into a 486px viewport — invisible until you scrolled, and
        eighteen tab stops away by keyboard. -->
-  <div class="search-bar">
+  <div class="search-bar" id="search-bar">
     <div class="search">
       <input type="search" id="search" autocomplete="off" spellcheck="false">
     </div>
   </div>
 
+  <!-- Applying a profile rewrites settings across several surfaces, and a site
+       Safari has not allowed leaves every switch inert. This strip is where both
+       are said: pinned under the header, where the eye already is. It sat at the
+       foot of the scroll region for a while — a screen reader heard every word
+       and nobody with eyes ever saw one. -->
+  <p class="announce" id="announce" role="status" aria-live="polite"></p>
+
   <div class="scroll" id="scroll">
-  <main>
-    <!-- One recommendation, and the rest behind a disclosure. Four equal chips
-         put four decisions in front of someone who mostly wants the first. -->
-    <section>
-      <div class="label" id="label-profiles">Profiles</div>
-      <div class="segmented" id="profiles" role="group"></div>
-      <details id="more-profiles">
-        <summary id="more-profiles-label">Other profiles</summary>
-        <div class="segmented" id="profiles-rest" role="group"></div>
-      </details>
+  <main id="control-center">
+    <!-- The popover opens as a control centre, not a directory of 238 choices.
+         It answers what is useful on this YouTube page first; choosing a mode
+         or changing the long-tail settings is one explicit step away.
+
+         Every section says how far its switches reach — this video, every
+         video, every page of one kind, all of YouTube — in the caption on the
+         right of its heading. Three scopes were being described by one word,
+         "page", and a switch that quietly changes every watch page is a
+         different promise from one that changes the tab in front of you. -->
+    <section id="mode-section">
+      <div class="label"><span id="label-mode">Active mode</span><span class="scope" id="scope-mode"></span></div>
+      <!-- The row states the mode; pressing it opens the picker in place, so
+           changing modes is two taps and no navigation. -->
+      <button type="button" class="settings-row" id="active-profile" aria-expanded="false" aria-controls="mode-picker"></button>
+      <div class="list" id="mode-picker" role="radiogroup" hidden></div>
     </section>
 
-    <section>
+    <section id="playback-section">
       <div class="label">
         <span id="label-speed">Speed</span>
         <span class="label-value" id="speed-value"></span>
+        <span class="scope" id="scope-speed"></span>
       </div>
       <div class="segmented" id="speeds" role="group"></div>
+      <div class="list" id="quick-playback"></div>
     </section>
 
     <section id="page-section">
-      <div class="label" id="label-page">This page</div>
+      <div class="label"><span id="label-page">This page</span><span class="scope" id="scope-page"></span></div>
       <div class="list" id="quick"></div>
+    </section>
+
+    <p class="hint" id="page-empty" hidden></p>
+
+    <section id="all-section">
+      <div class="label"><span id="label-everywhere">All of YouTube</span><span class="scope" id="scope-everywhere"></span></div>
+      <div class="list" id="quick-all"></div>
+    </section>
+
+    <section id="changes-section">
+      <div class="label" id="label-changed">Your changes</div>
+      <details id="changed">
+        <summary><span id="changed-count"></span><span class="chevron summary-chevron" aria-hidden="true"></span></summary>
+        <div class="list" id="changed-list"></div>
+      </details>
+    </section>
+
+    <section id="customize-entry">
+      <button type="button" class="settings-row" id="open-customize">
+        <span class="row-label">
+          <span id="open-customize-label">Customize YouTube</span>
+          <small id="open-customize-note">All settings, modes and data</small>
+        </span>
+        <span class="chevron" aria-hidden="true"></span>
+      </button>
     </section>
   </main>
 
-  <!-- Every surface lives here too, so the popover is the whole product and
-       not a shortcut to somewhere else. -->
-  <section id="surfaces">
-    <div class="label" id="label-all">All settings</div>
-    <div class="list" id="surface-list"></div>
-    <div class="list" id="search-results" hidden></div>
-    <p class="hint" id="no-hits" hidden></p>
-  </section>
+  <!-- This stays inside the popover so every setting remains available, but it
+       is an intentional workspace rather than the first screen everyone sees. -->
+  <div id="customize-workspace" hidden>
+    <div class="workspace-nav">
+      <button type="button" id="customize-back" class="back">
+        <span class="chevron back-chevron" aria-hidden="true"></span>
+        <span id="customize-back-label">Back</span>
+      </button>
+      <b class="workspace-title" id="customize-title" tabindex="-1">Customize</b>
+    </div>
 
-  <!-- The root list's own footer. It is not part of a surface, and it is not
-       part of a set of search results. -->
+    <!-- The catalogue, sorted by reach rather than alphabetically: what
+         applies to all of YouTube, what applies to one kind of page, and the
+         tools. Nineteen names in one column gave no clue which was which. -->
+    <section id="surfaces">
+      <div id="surface-list"></div>
+      <div class="label" id="label-results" hidden></div>
+      <div class="list" id="search-results" hidden></div>
+      <p class="hint" id="no-hits" hidden></p>
+    </section>
+
+    <section id="profiles-section">
+      <div class="label" id="label-profiles">Choose a mode</div>
+      <div class="list" id="profiles" role="group"></div>
+      <details id="more-profiles">
+        <summary id="more-profiles-label">Other modes</summary>
+        <div class="list" id="profiles-rest" role="group"></div>
+      </details>
+      <!-- Modes you saved. Each row applies like a built-in one and says what
+           it would change first; the tools behind it rename, update,
+           duplicate and delete. -->
+      <div class="label" id="label-custom-modes">Your modes</div>
+      <div class="list" id="custom-modes" role="group"></div>
+      <button type="button" class="btn" id="mode-save">Save current settings as a mode</button>
+      <div class="inline-form" id="mode-form" hidden>
+        <input type="text" id="mode-name" maxlength="40" autocomplete="off">
+        <button type="button" class="btn filled" id="mode-go">Save</button>
+      </div>
+    </section>
+
+    <!-- Channels with preferences of their own, kept from the in-page panel
+         while watching. Listed here so they can be found and removed. -->
+    <section id="channels-section" hidden>
+      <div class="label" id="label-channels">Channel preferences</div>
+      <div class="list" id="channels-list"></div>
+    </section>
+
+    <!-- The bookmark library. Local to this browser, never synced with the
+         settings, and with its own file. -->
+    <section id="bookmarks-section">
+      <div class="label" id="label-bookmarks">Bookmarks</div>
+      <div class="search">
+        <input type="search" id="bookmark-search" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="list" id="bookmarks-list"></div>
+      <p class="hint" id="bookmarks-empty" hidden></p>
+      <div class="btn-row bookmarks-tools">
+        <button type="button" class="btn" id="bookmarks-export">Export</button>
+        <button type="button" class="btn" id="bookmarks-import">Import</button>
+        <button type="button" class="btn danger" id="bookmarks-clear">Delete all</button>
+      </div>
+      <div class="confirm" id="bookmarks-clear-confirm" hidden>
+        <p class="hint" id="bookmarks-clear-body"></p>
+        <div class="btn-row">
+          <button type="button" class="btn danger" id="bookmarks-clear-go">Delete all</button>
+          <button type="button" class="btn" id="bookmarks-clear-cancel">Cancel</button>
+        </div>
+      </div>
+      <span class="hint" id="bookmarks-count"></span>
+    </section>
+
+    <!-- Summaries kept on this device, each deletable on its own. -->
+    <section id="summaries-section" hidden>
+      <div class="label" id="label-summaries">Saved summaries</div>
+      <div class="list" id="summaries-list"></div>
+    </section>
+
+  <!-- Data management is deliberate, not part of everyday playback control. -->
   <footer id="root-footer">
     <div class="label" id="label-yours">Your settings</div>
+    <!-- Where the settings live, said truthfully per browser: iCloud on Safari,
+         with when it last worked and why it did not; this profile only on
+         Chrome and Edge. -->
+    <div class="sync-row">
+      <span class="hint" id="sync-status" role="status"></span>
+      <button type="button" class="btn small" id="sync-now" hidden>Sync now</button>
+    </div>
     <div class="btn-row">
       <button type="button" class="btn" id="export">Export</button>
       <button type="button" class="btn" id="import">Import</button>
       <button type="button" class="btn danger" id="reset">Reset all</button>
+    </div>
+    <!-- An import says what it is about to change before it changes it. -->
+    <div class="confirm" id="import-confirm" hidden>
+      <p class="hint" id="import-body"></p>
+      <ul class="hint change-list" id="import-list"></ul>
+      <div class="btn-row">
+        <button type="button" class="btn filled" id="import-go">Import</button>
+        <button type="button" class="btn" id="import-cancel">Cancel</button>
+      </div>
     </div>
     <!-- Reset asks in place. A popover has no room for a modal, and a modal is
          the first thought rather than the right one. -->
@@ -84,8 +210,31 @@
         <button type="button" class="btn" id="reset-cancel">Cancel</button>
       </div>
     </div>
+    <!-- Import, reset and a sync that replaced unsent edits each keep what
+         they displaced. This is the way back. -->
+    <div id="restore-box" hidden>
+      <div class="label" id="label-restore">Restore previous</div>
+      <div class="list" id="restore-list"></div>
+    </div>
     <span class="hint" id="hint"></span>
   </footer>
+  </div>
+
+  </div>
+
+  <!-- The gate. The setting says the password is "asked for before this page
+       opens", and for a while nothing asked: the screen that did lived in the
+       settings page, and deleting that page left the promise behind with only
+       a disabled master switch to keep it. -->
+  <div id="gate" hidden>
+    <div class="gate-body">
+      <span class="mark" aria-hidden="true"></span>
+      <b id="gate-title">Locked</b>
+      <p class="hint" id="gate-note"></p>
+      <input type="password" id="gate-input" autocomplete="current-password">
+      <p class="row-note danger" id="gate-error"></p>
+      <button type="button" class="btn filled" id="gate-go">Unlock</button>
+    </div>
   </div>
 
   <!-- The second level. Same popover, pushed across. -->
@@ -96,13 +245,24 @@
         <span id="back-label">Back</span>
       </button>
       <b id="drill-title"></b>
+      <!-- One way back for a whole surface. It appears only when something on
+           it differs from the defaults, and it asks in place before it acts. -->
+      <button type="button" class="btn plain" id="drill-reset" hidden></button>
     </header>
     <div class="scroll" id="drill-scroll">
+      <div class="confirm" id="drill-reset-confirm" hidden>
+        <p class="hint" id="drill-reset-body"></p>
+        <div class="btn-row">
+          <button type="button" class="btn danger" id="drill-reset-go">Reset</button>
+          <button type="button" class="btn" id="drill-reset-cancel">Cancel</button>
+        </div>
+      </div>
       <div id="drill-body"></div>
     </div>
   </div>
 
   <script src="../../common/defaults.js"></script>
+  <script src="../../common/bookmarks.js"></script>
   <script src="../../common/css.js"></script>
   <script src="../../common/spec.js"></script>
   <script src="../../common/store.js"></script>

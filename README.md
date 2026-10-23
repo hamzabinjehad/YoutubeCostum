@@ -1,8 +1,8 @@
 # Costum for YouTube
 
-A Safari web extension that combines what **Enhancer for YouTube** does for playback
-with what **UnTrap** does for clutter — on iPhone, iPad and Mac, for one purchase
-with no subscription.
+A Safari-first web extension, with a generated Chrome and Edge build, that combines
+what **Enhancer for YouTube** does for playback with what **UnTrap** does for clutter.
+On Safari it works across iPhone, iPad and Mac for one purchase with no subscription.
 
 Enhancer does not exist on Safari at all. UnTrap does, but never touches playback
 and charges $35.99/year for sync and AI summaries. This project takes both halves.
@@ -12,18 +12,21 @@ and charges $35.99/year for sync and AI summaries. This project takes both halve
 ```
 extension/          the web extension — plain JavaScript, no build step
   common/           settings model (defaults.js), CSS builders (css.js), storage
-  background/       messaging, SponsorBlock, Claude API, iCloud bridge
+  background/       messaging, SponsorBlock, Claude API, Safari iCloud bridge
   content/          boot (document_start), router, in-page panel
     modules/        one file per feature, each able to fail alone
     page/           bridge.js — the only code that runs in the page world
-  ui/               options page and toolbar popup
+  ui/               toolbar Control Center and Customize workspace
+apple/App/          ViewController.swift — the SwiftUI container app (iPhone first)
+apple/App/Icons/    app icon and hero image sets, drawn by scripts/icons.swift
 apple/Shared/       CloudSync.swift — the native messaging handler
 apple/generated/    Xcode project (generated, safe to delete and rebuild)
 tests/              logic tests, run through macOS JavaScriptCore
 scripts/package.sh  regenerates the Xcode project
 scripts/test.sh     syntax + logic tests
-scripts/harness.sh  runs the popup and settings page as plain web pages
+scripts/harness.sh  runs the popup and in-page panel as plain web pages
 scripts/build-chrome.sh  emits build/chrome/ for Chrome and Edge
+scripts/icons.swift  draws every icon (extension, toolbar, iOS, macOS) from one mark
 ```
 
 There is deliberately no bundler. What is written here is what ships, which keeps
@@ -38,7 +41,14 @@ open "apple/generated/Costum for YouTube/Costum for YouTube.xcodeproj"
 
 Then in Xcode: set your development team on all four targets, and add the
 **iCloud key-value storage** capability to both Extension targets (this is what
-makes cross-device sync work without a server).
+makes cross-device sync work without a server). `COSTUM_TEAM=<team id>
+./scripts/package.sh` sets the team on every target for you. Xcode needs your
+Apple ID under Settings → Accounts to create the provisioning profiles.
+
+The iOS targets also carry an **App Group** (`group.com.costum.youtube`),
+written by `package.sh`. The extension tells the app through it when it last
+ran on YouTube, which is how the setup screen can say "Costum is working"
+although iOS gives an app no way to ask.
 
 The generated project references `extension/` in place, so editing a module and
 rebuilding in Xcode is enough — `package.sh` only needs re-running when the
@@ -58,6 +68,72 @@ Never `killall` CoreSimulatorService or delete a runtime image that reports itse
 as a duplicate — duplicate records can share one asset file on disk, and deleting
 the record deletes the 8.5 GB download out from under the working one.
 
+## The phone is a different YouTube
+
+iPhone Safari is served **m.youtube.com**; the iPad and the Mac get the desktop
+site. They are different DOMs (`ytm-*` against `ytd-*`), and until 2026-09-24
+only **6 of the 160** page-hiding switches had any mobile selector. On a phone
+the rest did nothing while looking wired.
+
+Now **54 of 160** work on the phone, each matched and hidden on live
+m.youtube.com: watch (comments, related, buttons, title, channel, views,
+description), search (filters, ads, channels, endless results), Shorts (the
+whole overlay and each part), video cards (title, avatar, channel, views,
+duration, menu, badges), 20 channel-page switches (mobile uses the desktop's own
+view-model elements there), the top bar, and the home feed, chips and mixes.
+"Just the video" clears the mobile watch page too and pulls the player to the
+top.
+
+What the phone does not have is not offered there. `CostumCss.worksOn(path,
+mobile)` decides: the popup's Control Center and the in-page panel leave those
+switches out on m.youtube.com, and Customize keeps them with a "Desktop YouTube
+only" caption, since they still sync to the Mac and iPad. Desktop-only: the
+sidebar (the phone has a bottom bar), the desktop player's `.ytp-*` buttons (the
+mobile player draws its own), wheel speed, keyboard shortcuts, and the desktop
+layout controls.
+
+Two things the mobile work turned up:
+
+- **Rules need to know the page.** Desktop rules scope with
+  `ytd-browse[page-subtype]`; the mobile site has no such attribute, and
+  `ytm-rich-grid-renderer` is also a channel's video grid. `boot.js` and the
+  router write `<html costum-page="home|watch|search|channel|shorts|…">` at load
+  and on every navigation, and mobile rules scope to it.
+- **Blocking a channel by name never worked on an iPhone.** The mobile channel
+  selector had been written from documentation (`.yt-core-attributed-string`)
+  and matched nothing live; the byline is `.ytmBadgeAndBylineRendererItemByline`.
+  Titles on mobile channel pages (`.YtmCompactMediaItemHeadline`) were missed
+  the same way.
+
+Every mobile selector is pinned by a test, as the desktop ones are.
+
+Checked end to end in iOS Safari on the iPhone simulator: the panel on a mobile
+watch page offers only Just the video, Hide comments and Hide related (Cinema,
+wide player, chat and end screens are left out), and each of the three works.
+iOS Safari is served a slightly different mobile layout from an Android
+browser (the channel row sits above the buttons, comments are a
+"Comments 2.4M" box); the same selectors cover both. Still missing on the
+phone: per-channel preferences, which read the desktop owner row ("Channel not
+identified yet" in the panel).
+
+## When a switch stops working
+
+YouTube renames elements without notice. `deadSwitches` in `css.js` looks, a
+few seconds after each page settles, for switches that are on, belong to this
+page, and match nothing. Only targets every page of that kind has are checked (a
+title, the related list, a channel's tabs), so a video without comments or live
+chat never raises it. A second check confirms before anything is said; then the
+panel shows "2 switches on this page are finding nothing", the popup names them,
+and Diagnostics lists them.
+
+## The first minute
+
+The first time the panel opens it leads with "Pick a starting point": the four
+modes, one tap each, undoable, and Not now. It is remembered in extension
+storage (`welcomed`) and never shown over a mode someone already chose. Its
+buttons have their own control ids; sharing the Modes section's sent tests and
+focus-restore to the wrong button.
+
 ## Chrome and Edge
 
 ```bash
@@ -74,7 +150,49 @@ pulls in `defaults.js` with `importScripts` when it finds itself in a worker.
 A test asserts the two keys stay in sync, so removing one to tidy up breaks the
 suite rather than the other browser.
 
+The Chrome and Edge build keeps settings in that browser profile. iCloud sync is
+Safari-only because it uses the containing Safari app's native extension handler;
+the Chromium build deliberately does not request a native-messaging permission or
+pretend that an unshipped desktop helper exists.
+
 ## Testing
+
+The toolbar popup opens to a Control Center: the active mode (with a picker
+that folds out under it), default speed, the page's preferences, the three
+site-wide distraction controls and a summary of changes. Every section says how
+far it reaches — this video, every video, every watch page, all of YouTube —
+because one word, "page", was carrying three different promises. **Customize
+YouTube** opens the catalogue sorted by reach (all of YouTube, by page, tools),
+search that also matches group headings and says how many hits it found, the
+mode tools and the data controls, all inside the same popup. Each setting draws
+with the explanation the spec wrote for it, a moved slider offers its default
+back, and a surface with changes offers a reset that asks first. All 238
+settings remain available. The in-page panel puts current-video actions first,
+labels each section's reach the same way, and says which mode is in force.
+
+For an interactive preview, run `./scripts/harness.sh`. Open
+`http://localhost:8765/index.html?test=1` to run the popup browser suite against
+in-memory settings; add `&lang=ar` for Arabic, `&dead=1&browser=chrome` for
+Chrome permission recovery, `&sync=error|dirty|signedout` to seed a sync state,
+`&summaries=1` to seed saved summaries. `watch.html` previews the in-page panel.
+The harness verifies UI behavior, not installation or live YouTube integration.
+
+### The feature suite
+
+`http://localhost:8765/tests/features.html` runs the actual extension modules
+in throwaway iframes, over stubbed extension APIs — a fake `AudioContext` that
+records the graph so "audible" is a number, a fake iCloud key-value slot shared
+between two background instances, caption and Claude responses served from the
+test. No external requests and no API keys. Most tests drive the real
+`boot.js → modules → panel.js → router.js` stack through `storage.onChanged`,
+the same path an installed extension takes, so they cover what the settings
+wiring checks cannot: the master switch going off and on without a reload, a
+burst of navigations with the player replaced under it, popup and panel writes
+landing together, a reply arriving after the video it was for has gone, audio
+staying audible when processing stops, focus gates expiring while the tab is
+asleep, and the native player never carrying one video's position into the
+next. `self.CostumFeatureTestResult` holds the outcome; the tab title says
+PASS or FAIL. Each new test was broken on purpose once before it was trusted.
 
 ```bash
 ./scripts/test.sh
@@ -108,6 +226,10 @@ in Safari by hand — except the two HTML surfaces, which have their own harness
 `?lang=ar` and `?path=/results` seed the locale and the pretend active tab before
 the page reads them, which is the only way to check the Arabic layout or a
 page-scoped control without clicking through the UI to set it up first.
+
+`?dead=1` simulates a YouTube tab where the content script cannot answer; add
+`&browser=chrome` to exercise Chrome's Extensions-menu recovery copy instead of
+Safari's address-bar guidance.
 
 That serves the popup and the settings page as ordinary web pages with the
 extension APIs stubbed, so their layout and logic can be checked without
@@ -230,6 +352,205 @@ the text one; the test fails on any `color: var(--accent)` that is not a border
 or an `accent-color`, which is a distinction it had to be taught, having first
 flagged a range slider and a checkbox.
 
+### Folding groups
+
+Borrowed from a reference the author sent, and the only thing worth borrowing
+from it. Measured first, because the borrowing is only worth anything if the
+problem is real: the Watch page carries **forty settings in six groups and ran
+to 5.3 screens of scrolling**, the Player 4.4, the Sidebar 4.1.
+
+Folded, the Watch page is **0.8 screens** — six group names you read at once.
+A group holding anything switched on opens by itself, so folding never hides
+your own state; the same rule the profile disclosure follows. Which groups are
+open is held in a Set rather than read back off the DOM, because every toggle
+rebuilds the pane and a fold that reopens on each tap is worse than no fold.
+
+That change quietly narrowed the overflow sweep, which measures rendered rows
+and would have stopped seeing the folded ones. It opens every group before it
+measures, so it still covers all 238.
+
+**What was not borrowed, and why.** The reference marks each group with a
+tinted percentage badge; a fraction is exact where these groups are two to
+twenty items, and thirty-three tinted pills is a lot of weight for a number you
+mostly glance at. Its labels are Title Case and its switches are green: the
+system uses sentence case for settings labels, and a switch takes the platform
+accent. Its icon tiles are one neutral grey; ours are the system palette, one
+colour per surface, which is what makes a list of nineteen scannable. Copying
+those would have made this look like that product rather than like the system
+both are borrowing from.
+
+### Is it even running
+
+Safari does not grant an extension its sites at install. Until the person
+clicks the extension's icon in the address bar and allows youtube.com, the
+popover opens, every switch flips, and nothing on the page moves — and the
+line at the top of the popover said **"On for this page"** throughout, because
+it was derived from two facts, the master switch and the tab's host, neither of
+which is evidence that the content script is running.
+
+The popover pings the tab now and the content script answers with what it
+knows: that it is there, how many modules loaded, whether the player bridge
+was blocked. No answer within a second is the finding. The line says "Not
+allowed on youtube.com yet", in amber, and a strip under the header says
+exactly what to click. If the bridge was blocked it says that instead, and
+names the three features that will not work.
+
+That strip had been sitting at the very bottom of the scroll region — inserted
+after the footer, which is inside it — so the profile confirmation added
+earlier was heard by every screen reader and seen by nobody. It is pinned under
+the header now, where the measurement says it was always claimed to be.
+
+### Does it reach the page
+
+`wiring.py` proves every setting has selectors behind it. Nothing in the suite
+could prove the selectors reach anything on today's YouTube — and nine of them
+did not. `scripts/probe.sh` prints a script for a live youtube.com console that
+counts, for every selector group that applies to the page, how many elements it
+matches, and names the ones that match nothing. It reads `DECLUTTER` out of
+`css.js` at generation time, so it cannot drift from what ships.
+
+Run on a watch page: 99 groups apply, 47 matched. Of the 52 empty, all but one
+family were the page's own state — signed out, so no avatar, no notifications,
+no Explore section in the guide; comments not yet scrolled into existence. The
+one family was **every card switch**. The related column is
+`yt-lockup-view-model` now, and there is not one `id` inside it: title, channel,
+metadata, duration and menu are all view-model tags or classes. Every card
+selector was written against `#video-title`, `#metadata-line`, `#menu`. Twenty-six
+cards on the page, zero matched, and the "Video cards" surface did nothing
+there. Search results still draw the old `ytd-video-renderer` with its ids, so
+both shapes are covered; each lockup selector matched exactly one element per
+card when checked, and `logic.js` now holds that every card part knows both.
+
+What was checked and works: every player API the bridge calls — force quality
+took, speed took, captions data present. What could not be checked from here:
+channel, Shorts, subscriptions and library pages, which redirect a signed-out
+session to a full-page consent interstitial. The consent dialog was left alone.
+Those selector groups are live-unverified and the probe is how to verify them
+from a signed-in Safari.
+
+A note on the tool: its first version assigned the selector table to a shell
+variable called `GROUPS`, which is a bash builtin holding the user's group ids.
+The assignment was silently ignored and the script shipped `const GROUPS = 20`
+— the staff gid on a Mac.
+
+### A profile is a switch
+
+The recommended profile was a lone chip drawn in the segmented control's
+pressed style. Pressed means "selected among these", and with no sibling to be
+selected against it did not say whether the profile was on — it read as a
+button. Its description sat 19px below it and the disclosure 19px below that,
+the same distance as the gap between sections, so one control read as three
+things and the block ran to 186px against 72px for the speed row beside it.
+
+Each profile is a row with a switch now, the same control as every other row
+in the popover, with its description inside the row as a caption. Tight groups,
+generous separation: 8 and 6px inside the block, 18px between sections, and the
+block is 144px. Switching one on switches the other off; switching the last one
+off returns your own settings, which is what the hint has always promised.
+
+### The lock was not locking
+
+The setting reads "Lock these settings — asked for before this page opens". The
+screen that asked lived in the settings page, and deleting that page took it
+with nothing to replace it. What remained was one line: the master switch went
+disabled. A password that was supposed to close the settings was closing one
+toggle and leaving 238 of them open, while its own description kept promising
+otherwise.
+
+The gate is in the popover now, and it is a screen rather than a veil: with a
+password set, `render()` is never called, so the settings are not in the DOM at
+all for anyone who opens an inspector. Verified end to end — locked on open with
+zero surfaces drawn, a wrong password refused and still nothing drawn, the right
+one revealing all nineteen. The description says what actually happens.
+
+The harness could not reach any of this, because its storage lives in memory and
+a reload takes the password with it; `?locked=<password>` now seeds a real
+salted hash before the popup boots, the way `?lang=ar` seeds a locale.
+
+### White on blue
+
+The focus block screen's only action — the button that lets you leave — was
+white on Apple's system blue: **3.65:1**, under AA. Apple ships that pairing and
+it is fine on a switch, which carries no text; it is not fine on the one way off
+a screen whose job is to stop you. There is a separate `--accent-fill` now,
+dark enough for white to clear 4.5, and filled buttons use it while switches
+keep the system blue.
+
+This was a gap in the contrast test as much as in the CSS: it checked the accent
+used **as text** and never the accent used **behind** text. It checks both now.
+
+### One product, two surfaces
+
+The popover took every pass in this session; the panel that lives on the
+YouTube page took none, and the two had quietly become different products. The
+panel kept five type sizes between 11px and 16px after the popover moved to
+four steps, shouted its section labels in uppercase after the popover stopped,
+and ran its transitions at 300ms after the popover came down to 240.
+
+It was also drawing its floating button in **Times**. The shadow root opens with
+`all: initial`, which resets `font-family` to the browser's default serif, and
+the face was set on `.panel` — one level too low to reach a button that sits
+outside it. Nothing there has text today. The next thing added would have.
+
+The panel cannot share the stylesheet, because it renders inside YouTube's page
+and has to carry its own tokens. So `tests/style-slop.py` compares the two: the
+same steps by name and value, no raw pixel sizes in the panel's CSS, no
+uppercase section labels, and the face set where `all: initial` cannot undo it.
+A copied token set drifts; this is the part that notices.
+
+One thing the sweep reported that was not real: twenty-four elements whose
+`scrollWidth` exceeded their box by three to nine pixels. Looking at the panel
+showed nothing overflowing — the measurement counts padding on a block inside a
+shadow root. Checked before fixing, and there was nothing to fix.
+
+### The phone
+
+The popup is the only surface, and the product is sold as one purchase across
+macOS, iOS and iPadOS. One of the three had never been laid out for:
+
+  - no `<meta name="viewport">` anywhere in the extension, so iOS Safari laid
+    the page out at the 980px desktop default and scaled the result down
+  - the body was a hard `340x560` with no size media query at all, which used
+    **nine percent** of an iPhone screen
+  - **fifteen controls under 44pt**, the platform's own floor for a finger —
+    the search field at 30px, the profile chips at 28, and the Back button, the
+    way out of a surface, at 27
+
+The fixed box stays on macOS, because the comment above it records a real
+Safari constraint. Below 420px the body takes the room it has, and a coarse
+pointer raises every target. Now: full screen, nothing under 44pt, on the root
+and inside a surface. `min-height` rather than padding, because padding has to
+be guessed against the line box and eleven controls landed at 40px on the first
+try.
+
+Measured in a desktop browser emulating a phone, not in Safari on an iPhone.
+The missing meta and the fixed size are facts from the source; how the sheet
+finally presents needs a device.
+
+### Reading it aloud
+
+A surface row read as "Player1 / 10" — two numbers with no word saying what
+they count. Applying a profile rewrites settings across several surfaces, and
+to a screen reader nothing happened at all. Rows carry a real name now
+("Player, 1 of 10 settings on"), and a polite live region says what a bulk
+change did. It is the same line sighted users read, rather than a second
+mechanism nobody maintains.
+
+### Which, not how many
+
+The counts answer "how many settings are on here". Nobody could ask **which**
+without opening all nineteen surfaces and reading them. A "What you have
+changed" list at the foot of the root gathers every setting that is not where
+it shipped, each naming the surface it came from, each tapping through to it.
+Compared against defaults rather than a log of what was touched, so a setting
+turned on and back off again correctly does not appear.
+
+Profiles now say what they will do before you press them, taken from `PROFILES`
+in defaults.js rather than written from memory, and say what they did after.
+That confirmation reports the same number the list underneath shows: counting
+switches that were on instead gave "7 settings on" beside a list headed "5
+settings", which is two answers to one question.
+
 ### What the critique changed
 
 `/impeccable critique` scored the popover **26/40 — Acceptable**, and the three
@@ -256,9 +577,17 @@ was proved by putting the leak back and watching it name four surfaces.
 
 **Search was invisible.** It began 624px into a 486px viewport and sat
 **eighteen tab stops** from the first focusable element: the fastest route to any
-setting was the one thing you could neither see nor reach. It is pinned under
-the header now — visible on open, **one tab stop** away. Both numbers are
-assertions in the interaction suite.
+setting was the one thing you could neither see nor reach. It sits under the
+header now — visible on open, **one tab stop** away. Both numbers are assertions
+in the interaction suite.
+
+It belongs to the root list and is hidden inside a surface. Pinning it to the
+header first put it on every screen, where it was noise on a page you had
+already chosen and, worse, inert: its results rendered into an element the drill
+had hidden, so the field accepted typing and nothing happened. Hiding it there
+is the honest version — inside a surface you are already somewhere specific and
+the way back is right next to it. The sweep across all nineteen surfaces checks
+for both the footer and the search bar leaking in.
 
 **Eighteen options before the navigation.** Four profiles, six speeds, seven page
 toggles and a master switch, all competing above the fold, against a
@@ -697,6 +1026,75 @@ rely on it, so on the extension's main platform that rule never applied — the
 redirect is carried by `content/modules/declutter.js` instead, and a test now
 fails if that path disappears. Both paths resolve the destination through one
 helper so they cannot disagree about what "/" means.
+
+## Where the settings live, and how they travel
+
+Safari: iCloud, through the containing app's key-value store. Chrome and Edge:
+this browser profile, and the footer of the popover says exactly that.
+
+Safari gives an extension no push channel from the app, so a change made on
+another device reaches a running extension only by asking. The background asks
+when the popover opens, when a YouTube page loads, and at browser start —
+throttled to once a minute so a burst of tabs is one round trip — and "Sync
+now" in the footer asks regardless. The footer shows when the last sync worked
+and, when it did not, why: not signed in to iCloud, the store refused the write,
+the app did not answer. The Swift side reports those instead of acknowledging
+every push, which it used to.
+
+**The conflict policy.** Newest edit wins, by the wall clock of the device that
+made it. An edit made while a pull is in flight is never overwritten — the
+snapshot that lost the race is simply not applied, and the next refresh compares
+timestamps again. A device that edited while the app was unreachable owes a
+push, and pays it on the next refresh; if the cloud has moved on in the
+meantime, the cloud copy wins and the unsent edits are kept under **Restore
+previous** so they can be put back by hand. The API key never leaves the
+device in any direction.
+
+**The settings file** is a versioned envelope (`costum-settings`, version 1),
+without the API key. Importing previews what would change before anything
+changes, refuses a file from a newer Costum or one with a value of the wrong
+type — whole or not at all — and keeps a backup of what it replaced. Reset keeps
+one too. Bookmarks travel in their own file (`costum-bookmarks`) and never in
+the settings file, so neither importer can be fed the other's export.
+
+## Modes of your own, and one channel its own way
+
+A saved mode captures playback, sound, picture, layout, clutter, modesty,
+blocking and sponsor preferences — the things that describe a way of watching —
+and nothing about the device or the person: not the master switch, credentials,
+the focus lock and schedule, shortcuts, the panel's corner, or the A–B loop.
+It stores only what differed from the defaults when saved, so applying it
+resets its scope and lays the saved values on top; the popover shows what that
+would change before it does, and deselecting restores what was displaced, the
+same way the built-in modes undo.
+
+A channel can keep a speed, the sound settings, and the four watch-page clutter
+switches, under its stable id (`UC…`) or its `@handle` — never its display name
+alone. Precedence, highest first: a speed set on the video being watched (a
+nudge, a preset); the channel's own preferences; the active mode and global
+preferences. A channel's speed is applied by Costum and therefore never becomes
+the "remembered" speed that follows you elsewhere — only speeds you set count
+for that.
+
+## Blocking, precisely
+
+Two kinds of rule, labelled as such: **exact** channel rules (an id, a handle
+or a whole name) and **text** rules (title contains, channel name contains, a
+pattern). "Block this channel" in the panel adds the one you are watching, by
+id and by name. The panel lists what is hidden on the page with the rule that
+did it, and each card can be shown on its own; removing a rule restores its
+cards. Mutation work is budgeted — cards are deduplicated and judged 250 per
+frame, the rest on the next — and nothing rescans the document on a settings
+change unless the rules themselves changed. Mobile card tags are included from
+the markup the desktop site borrows from mobile; they still want a device check.
+
+## Bookmarks
+
+A moment in a video with a note, kept in this browser's own storage — never
+synced, never in the settings file, and never created on its own: saving one is
+a tap or a shortcut. The panel saves at the current second and lists the video's
+marks; the popover holds the whole library, searchable, with a limit it states
+(500) rather than one it enforces silently.
 
 ## The paid-feature stance
 
