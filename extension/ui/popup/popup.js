@@ -1378,6 +1378,7 @@
     document.getElementById('search-bar').hidden = !inCustomize;
     document.getElementById('page-section').hidden = !inControl;
     document.getElementById('root-footer').hidden = !inCustomize;
+    document.getElementById('customize-entry').hidden = !inControl;
     if (inDrill) { renderDrill(); return; }
     const currentPageRows = pageRows();
     document.getElementById('page-empty').hidden = pathname !== null;
@@ -1694,6 +1695,12 @@
   });
 
   document.getElementById('open-customize').addEventListener('click', openCustomize);
+  // The hairline under the pinned header, drawn only while something is under it.
+  // The drilled surface has its own ruled head, so only the root scroll needs it.
+  const rootScroll = document.getElementById('scroll');
+  rootScroll.addEventListener('scroll', () => {
+    rootScroll.toggleAttribute('data-scrolled', rootScroll.scrollTop > 0);
+  }, { passive: true });
   document.getElementById('active-profile').addEventListener('click', () => {
     modeOpen = !modeOpen;
     render();

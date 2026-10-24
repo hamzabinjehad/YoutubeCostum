@@ -89,15 +89,6 @@
       </details>
     </section>
 
-    <section id="customize-entry">
-      <button type="button" class="settings-row" id="open-customize">
-        <span class="row-label">
-          <span id="open-customize-label">Customize YouTube</span>
-          <small id="open-customize-note">All settings, modes and data</small>
-        </span>
-        <span class="chevron" aria-hidden="true"></span>
-      </button>
-    </section>
   </main>
 
   <!-- This stays inside the popover so every setting remains available, but it
@@ -221,6 +212,19 @@
   </div>
 
   </div>
+
+  <!-- Pinned, not the last row of the scroll. Below four sections on a 560px
+       pane it was the one route to 238 settings and nobody saw it without
+       scrolling to the end. Shown on the Control Center only. -->
+  <footer class="pinned" id="customize-entry">
+    <button type="button" class="settings-row" id="open-customize">
+      <span class="row-label">
+        <span id="open-customize-label">Customize YouTube</span>
+        <small id="open-customize-note">All settings, modes and data</small>
+      </span>
+      <span class="chevron" aria-hidden="true"></span>
+    </button>
+  </footer>
 
   <!-- The gate. The setting says the password is "asked for before this page
        opens", and for a while nothing asked: the screen that did lived in the
