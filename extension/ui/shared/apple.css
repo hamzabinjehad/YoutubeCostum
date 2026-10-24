@@ -1,10 +1,11 @@
-/* Costum for YouTube — the shared Apple design layer.
+/* Costum for YouTube — the shared design layer, "Studio".
  *
  * One file holds the tokens and the control primitives so the toolbar popup
- * and the settings page cannot drift apart. Values follow Apple's published
- * system palette and metrics rather than approximations: system colors for
- * tints, the semantic label/fill/separator ramps for everything else, 10pt
- * corners on grouped lists, and the sheet easing curve on every transition.
+ * cannot drift from itself. The language is a control desk rather than a
+ * settings pane: warm graphite neutrals, one teal signal colour for anything
+ * that is on, rounded-square controls, the rounded system face, and small
+ * tracked capitals naming each group. The red app mark is the only brand
+ * colour, and nothing else is red unless it destroys something.
  *
  * The in-page panel keeps its own copy of these tokens because it lives in a
  * shadow root and cannot link a stylesheet. Keep the two in step.
@@ -13,160 +14,135 @@
 :root {
   color-scheme: light dark;
 
-  /* ---- system tints ---- */
-  --blue: #007AFF;
-  --green: #34C759;
-  --red: #FF3B30;
-  --orange: #FF9500;
-  --indigo: #5856D6;
-  --purple: #AF52DE;
-  --pink: #FF2D55;
-  --teal: #30B0C7;
-  --gray: #8E8E93;
-  --brown: #A2845E;
+  /* ---- tints ----
+     Surface tiles only. Each surface keeps one across the catalogue and its
+     own header; none of them means anything else. */
+  --blue: #2563EB;
+  --green: #16A34A;
+  --red: #DC2626;
+  --orange: #D97706;
+  --indigo: #4F46E5;
+  --purple: #9333EA;
+  --pink: #DB2777;
+  --teal: #0891B2;
+  --gray: #78716C;
+  --brown: #A16207;
 
-  --accent: var(--blue);
+  /* ---- the signal ----
+     Three roles, three values, so the colour never fails contrast in a new
+     job. --accent fills a control that carries no word (a switch, a slider,
+     a focus ring): 3.74:1 on white, over the 3:1 a control needs. --accent-fill
+     sits under white words (5.47:1). --accent-text is the colour as a word
+     (4.93:1 on the page, 5.47:1 on a card). */
+  --accent: #0D9488;
   --accent-ink: #FFFFFF;
-  /* A switch carries no text, so its fill can be the system blue. A button with
-     a word on it cannot: white on #007AFF is 3.7:1 and on #0A84FF 3.65:1, both
-     under AA at this size. This is the accent darkened until white clears 4.5,
-     and it is what filled buttons use. */
-  --accent-fill: #0A6FDB;
-  /* System blue is 4.02:1 on white — fine for a filled control, where the bar
-     is 3:1, and under the 4.5:1 that blue *text* on a light ground needs. So
-     surfaces keep Apple's blue and text takes a darker one. On a dark ground
-     the lighter blue already clears AA, so there the two are the same. */
-  /* The accent, adjusted for use as text rather than as a filled control.
-     A filled switch carries its own contrast; a word does not. Measured on the
-     grouped background it sits on, #0071E3 came out at 4.21:1 — under AA —
-     which is where the state line and the "settings on" counts are set. */
-  --accent-text: #006ADB;
-  --danger: var(--red);
+  --accent-fill: #0F766E;
+  --accent-text: #0F766E;
+  --accent-soft: rgba(13, 148, 136, .12);
+  --danger: #C2410C;
 
-  /* ---- semantic labels ---- */
-  --label: #1D1D1F;
-  /* Apple's own secondaryLabel is rgba(60,60,67,.6), which composites to
-     8A8A8E on white — 3.44:1, under the 4.5:1 that small text needs. Apple can
-     carry it with their rendering and sizes; a settings list of 12px hints
-     cannot. These are solid values chosen to clear AA on their own ground. */
-  --label-2: #6E6E73;   /* 5.07:1 on white */
+  /* ---- ink ---- */
+  --label: #1A1A1C;
+  --label-2: #5F5D58;   /* 5.92:1 on the page, 6.58:1 on a card */
   /* Decoration only — chevrons, the clear-button disc. Never text. */
-  --label-3: rgba(60, 60, 67, .34);
+  --label-3: rgba(26, 26, 28, .30);
 
-  /* ---- fills and separators ---- */
-  --fill-1: rgba(118, 118, 128, .12);
-  --fill-2: rgba(118, 118, 128, .08);
-  --fill-3: rgba(118, 118, 128, .05);
-  --switch-off: rgba(120, 120, 128, .16);
-  --separator: rgba(60, 60, 67, .16);
-  --hairline: rgba(0, 0, 0, .08);
+  /* ---- fills and lines ---- */
+  --fill-1: rgba(26, 26, 28, .07);
+  --fill-2: rgba(26, 26, 28, .05);
+  --fill-3: rgba(26, 26, 28, .035);
+  --switch-off: rgba(26, 26, 28, .14);
+  --separator: rgba(26, 26, 28, .09);
+  --hairline: rgba(26, 26, 28, .10);
 
-  /* ---- backgrounds ---- */
-  --bg: #F2F2F7;
+  /* ---- grounds ---- */
+  --bg: #F4F3EF;
   --bg-raised: #FFFFFF;
-  --bg-sidebar: rgba(246, 246, 248, .82);
-  --bg-sunk: #EBEBF0;
-  --segment-thumb: #FFFFFF;
+  --bg-sidebar: rgba(244, 243, 239, .86);
+  --bg-sunk: #EAE8E3;
+  --segment-thumb: var(--accent-fill);
 
-  /* ---- elevation ---- */
-  --shadow-thumb: 0 3px 8px rgba(0, 0, 0, .12), 0 1px 1px rgba(0, 0, 0, .04), 0 0 0 .5px rgba(0, 0, 0, .04);
-  --shadow-card: 0 0 0 .5px var(--hairline), 0 1px 1px rgba(0, 0, 0, .03);
-  --shadow-sheet: 0 24px 60px rgba(0, 0, 0, .22), 0 0 0 .5px rgba(0, 0, 0, .06);
+  /* ---- elevation ----
+     Cards are drawn by a 1px line, not lifted. Shadows belong to things that
+     move: the switch knob, the toast. */
+  --shadow-thumb: 0 1px 2px rgba(0, 0, 0, .18), 0 0 0 .5px rgba(0, 0, 0, .06);
+  --shadow-card: 0 0 0 1px var(--hairline);
+  --shadow-sheet: 0 18px 40px rgba(26, 26, 28, .18), 0 0 0 1px var(--hairline);
 
   /* ---- metrics ---- */
-  --r-list: 14px;
-  --r-control: 8px;
+  --r-list: 12px;
+  --r-control: 9px;
   --r-sheet: 14px;
   --r-pill: 980px;
 
-  /* Apple's sheet curve: quick to leave, slow to land. */
-  --ease: cubic-bezier(.32, .72, 0, 1);
-  /* A settings surface is somewhere you are working, not somewhere you are
-     being shown something: transitions stay inside the 150–250ms a person in
-     flow does not notice. 300ms was long enough to feel like choreography. */
-  --dur: .24s;
-  --dur-fast: .18s;
+  /* Quick to leave, slow to land; no overshoot. */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur: .22s;
+  --dur-fast: .16s;
 
-  /* -apple-system asks the OS for San Francisco, which is how SF Pro is used
-     legitimately in a web extension — the font is never shipped, the system
-     provides it. Apple cuts SF at two optical sizes: Text below 20pt and
-     Display at or above it. Safari picks automatically; naming Display keeps
-     headings correct in the Chrome build too. */
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  /* The rounded cut of the system face: the same San Francisco metrics, with
+     terminals that read as a tool rather than a form. Never shipped; the OS
+     provides it, and anything without it falls back to the plain system face. */
+  --font: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   /* ---- type scale ----
-     Four steps, and a rule for which one to reach for: caption is secondary
-     text you read, body is anything you read or operate, title names a screen.
-     There were eleven sizes between 9px and 16px before this, with the same
-     job done at 11.5px in one place and 12.5px in another — close enough that
-     no step read as a step, which is a hierarchy in name only.
-
-     11/13/15 are Apple's own steps at this density rather than a wider
-     typographic ratio: this is a settings surface, and the system's own dense
-     UI is set exactly here.
-
-     The floor is deliberate. Nothing interactive is ever set at caption size —
-     a control you have to squint at is a control you get wrong — so caption is
-     for text that is only read, and everything you click, type in or press is
-     body at minimum. */
+     Four steps. Caption is text you only read, body is anything you read or
+     operate, title names a screen. Nothing interactive is set at caption. */
   --t-caption: 11px;
   --t-body: 13px;
   --t-title: 15px;
-  --t-display: 28px;
+  --t-display: 22px;
 
-  /* SF is tracked by size, not set once and scaled: small text is opened up so
-     it stays legible, large text is tightened so it does not fall apart. Every
-     step here was at `normal`, which is the browser's idea of spacing and not
-     the system's. Paired with each step so the two cannot drift. */
-  --track-caption: .006em;
-  --track-body: -.006em;
-  --track-title: -.014em;
+  /* Tracked by size: small opened up, large tightened. The group heading is
+     capitals and gets the widest step. */
+  --track-caption: .01em;
+  --track-body: -.004em;
+  --track-title: -.012em;
   --track-display: -.02em;
-  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --track-eyebrow: .07em;
+  --font-display: var(--font);
   --font-ar: -apple-system, BlinkMacSystemFont, "SF Arabic", "Geeza Pro", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --blue: #0A84FF;
-    --accent-fill: #0A6FDB;
-    /* Dark mode had simply repeated the standard system blue here, so the
-       adjustment this token exists to make was never made: 3.82:1 on the
-       raised surface. This is Apple's own accessible blue for dark. */
-    --accent-text: #409CFF;
-    --green: #30D158;
-    --red: #FF453A;
-    --orange: #FF9F0A;
-    --indigo: #5E5CE6;
-    --purple: #BF5AF2;
-    --pink: #FF375F;
-    --teal: #40C8E0;
-    --gray: #98989D;
-    --brown: #AC8E68;
+    --blue: #60A5FA;
+    --green: #4ADE80;
+    --red: #F87171;
+    --orange: #FBBF24;
+    --indigo: #818CF8;
+    --purple: #C084FC;
+    --pink: #F472B6;
+    --teal: #22D3EE;
+    --gray: #A8A29E;
+    --brown: #D6A35C;
 
-    --label: #F5F5F7;
-    --label-2: #A1A1A6;   /* 6.61:1 on the dark surface */
-    --label-3: rgba(235, 235, 245, .32);
+    --accent: #2DBFA9;
+    --accent-fill: #0F766E;
+    /* 9.80:1 on the page, 8.86:1 on a card. */
+    --accent-text: #4FD1BD;
+    --accent-soft: rgba(45, 191, 169, .16);
+    --danger: #FB923C;
 
-    --fill-1: rgba(118, 118, 128, .24);
-    --fill-2: rgba(118, 118, 128, .18);
-    --fill-3: rgba(118, 118, 128, .12);
-    --switch-off: rgba(120, 120, 128, .32);
-    --separator: rgba(84, 84, 88, .60);
-    --hairline: rgba(255, 255, 255, .08);
+    --label: #EDECE8;
+    --label-2: #A3A19B;   /* 6.44:1 on a card */
+    --label-3: rgba(237, 236, 232, .30);
 
-    --bg: #1C1C1E;
-    --bg-raised: #2C2C2E;
-    --bg-sidebar: rgba(30, 30, 32, .82);
-    --bg-sunk: #141416;
-    /* In the dark the selected segment is the lighter one — a white thumb
-       would be darker than its own track. */
-    --segment-thumb: #636366;
+    --fill-1: rgba(255, 255, 255, .08);
+    --fill-2: rgba(255, 255, 255, .06);
+    --fill-3: rgba(255, 255, 255, .04);
+    --switch-off: rgba(255, 255, 255, .16);
+    --separator: rgba(255, 255, 255, .08);
+    --hairline: rgba(255, 255, 255, .09);
 
-    --shadow-thumb: 0 3px 8px rgba(0, 0, 0, .5), 0 0 0 .5px rgba(0, 0, 0, .3);
-    --shadow-card: 0 0 0 .5px var(--hairline);
-    --shadow-sheet: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 .5px rgba(255, 255, 255, .08);
+    --bg: #141416;
+    --bg-raised: #1E1E21;
+    --bg-sidebar: rgba(20, 20, 22, .86);
+    --bg-sunk: #0E0E10;
+
+    --shadow-thumb: 0 1px 2px rgba(0, 0, 0, .5);
+    --shadow-sheet: 0 18px 40px rgba(0, 0, 0, .55), 0 0 0 1px var(--hairline);
   }
 }
 
@@ -197,11 +173,11 @@ body[dir="rtl"] { font-family: var(--font-ar); }
 ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
 input, textarea { caret-color: var(--accent); }
 
-/* Apple's focus ring: the accent at reduced opacity, outside the control. */
+/* A solid 2px ring in the signal colour, standing clear of the control. */
 :focus { outline: none; }
 :focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 1px;
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
   border-radius: var(--r-control);
 }
 
@@ -210,7 +186,7 @@ input, textarea { caret-color: var(--accent); }
    left looks like a stray blue rule under the row, not like focus. Rows inside
    a clipped container draw their ring on the inside instead. */
 .list-row:focus-visible {
-  outline-offset: -3px;
+  outline-offset: -2px;
   border-radius: 0;
 }
 
@@ -241,14 +217,16 @@ input, textarea { caret-color: var(--accent); }
    where the whole row is the control and a second tab stop would be noise. */
 .sw-track {
   display: block; flex: 0 0 auto; position: relative;
-  width: 38px; height: 23px; border-radius: var(--r-pill);
+  /* A rounded square, not a pill: the switch is the control this surface is
+     made of, and it is drawn as a key on a desk rather than a phone toggle. */
+  width: 40px; height: 24px; border-radius: 8px;
   background: var(--switch-off);
   transition: background var(--dur-fast) var(--ease);
 }
 .sw-track::after {
   content: "";
-  position: absolute; inset-block-start: 1.5px; inset-inline-start: 1.5px;
-  width: 20px; height: 20px; border-radius: 50%;
+  position: absolute; inset-block-start: 3px; inset-inline-start: 3px;
+  width: 18px; height: 18px; border-radius: 5.5px;
   background: #FFFFFF; box-shadow: var(--shadow-thumb);
   transition: transform var(--dur) var(--ease);
 }
@@ -259,26 +237,27 @@ input, textarea { caret-color: var(--accent); }
 
 .sw input[type="checkbox"]:checked ~ .sw-track::after,
 [aria-pressed="true"] > .sw-track::after,
-.sw-track[data-on]::after { transform: translateX(15px); }
+.sw-track[data-on]::after { transform: translateX(16px); }
 
 body[dir="rtl"] .sw input[type="checkbox"]:checked ~ .sw-track::after,
 body[dir="rtl"] [aria-pressed="true"] > .sw-track::after,
-body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
+body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-16px); }
 
 .sw input[type="checkbox"]:disabled { cursor: not-allowed; }
 .sw input[type="checkbox"]:disabled ~ .sw-track { opacity: .4; }
 .sw input[type="checkbox"]:focus-visible ~ .sw-track {
-  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 /* ---------------------------------------------------- segmented control --
-   For a small set of exclusive choices. The selected segment is a raised
-   thumb on a sunken track, the way UISegmentedControl draws it.
+   For a small set of exclusive choices. The chosen segment is filled with
+   the signal colour and carries white type, so which speed is in force reads
+   from across the room, not only from a slightly lighter thumb.
 */
 .segmented {
-  display: flex; gap: 2px; padding: 2px;
-  background: var(--fill-1); border-radius: 9px;
+  display: flex; gap: 2px; padding: 3px;
+  background: var(--fill-1); border-radius: 10px;
 }
 .segmented button {
   /* `flex-basis: 0` sized every button to the same width regardless of its
@@ -291,7 +270,7 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
   overflow: hidden; text-overflow: ellipsis;
   border: 0; background: none; color: var(--label);
   font: inherit; font-size: var(--t-body); line-height: 1.4;
-  padding: 5px 6px; border-radius: 7px; cursor: pointer;
+  padding: 5px 6px; border-radius: 7.5px; cursor: pointer;
   font-variant-numeric: tabular-nums; white-space: nowrap;
   /* "2×" has no letter in it, so in an Arabic popover the bidi algorithm took
      the paragraph's direction and drew it as "×2". Plaintext lets each label
@@ -302,8 +281,7 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 }
 .segmented button:hover { background: var(--fill-3); }
 .segmented button[aria-pressed="true"] {
-  background: var(--segment-thumb); font-weight: 590;
-  box-shadow: var(--shadow-thumb);
+  background: var(--segment-thumb); color: var(--accent-ink); font-weight: 650;
 }
 .segmented button:active { transform: scale(.97); }
 
@@ -314,8 +292,9 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 
 
 /* ------------------------------------------------------- grouped list ----
-   An inset grouped table: one card, hairline separators that stop short of
-   the leading edge so the labels line up down the column.
+   One card per group, edged by a 1px line rather than lifted, with
+   separators that stop short of the leading edge so the labels line up down
+   the column.
 */
 .list {
   background: var(--bg-raised); border-radius: var(--r-list);
@@ -329,39 +308,44 @@ body[dir="rtl"] .sw-track[data-on]::after { transform: translateX(-15px); }
 }
 
 /* ---- the surface tiles ----
-   A rounded square of system colour with the glyph knocked out in white, the
-   way Settings marks a row. The size is a variable because the same tile sits
+   A soft tile: the surface's colour at low strength behind the glyph drawn in
+   the colour itself. Solid blocks of nine colours shouted over the labels they
+   were meant to sort. The size is a variable because the same tile sits
    in a 20px rail and a 44px list row, and scaling it by one number keeps the
    corner radius and the glyph in proportion rather than needing a second rule. */
 .tab-icon {
   --icon: 20px;
   flex: 0 0 auto; width: var(--icon); height: var(--icon);
-  border-radius: calc(var(--icon) * .26);
-  background: var(--tint, var(--gray));
+  border-radius: calc(var(--icon) * .3);
+  background: color-mix(in srgb, var(--tint, var(--gray)) 15%, transparent);
   display: grid; place-items: center;
-  box-shadow: inset 0 .5px 0 rgba(255, 255, 255, .28);
 }
-.tab-icon svg { width: 65%; height: 65%; display: block; color: #FFFFFF; }
+.tab-icon svg { width: 62%; height: 62%; display: block; color: var(--tint, var(--gray)); }
+/* The tints are mid-strength; on a dark card the deeper ones (indigo, brown)
+   sank into their own tile. Lifted toward white there, keeping their hue. */
+@media (prefers-color-scheme: dark) {
+  .tab-icon svg { color: color-mix(in srgb, var(--tint, var(--gray)) 72%, #FFFFFF); }
+}
 .list-row + .list-row::before {
   content: ""; position: absolute; inset-block-start: 0;
-  inset-inline: 14px 0; height: .5px; background: var(--separator);
+  inset-inline: 14px 0; height: 1px; background: var(--separator);
 }
 .list-row:hover { background: var(--fill-3); }
 .list-row:active { background: var(--fill-2); }
 
 /* ------------------------------------------------------------- buttons ---- */
 .btn {
-  font: inherit; font-size: var(--t-body); cursor: pointer;
+  font: inherit; font-size: var(--t-body); font-weight: 560; cursor: pointer;
   border: 0; border-radius: var(--r-control);
   padding: 7px 14px; color: var(--label);
-  background: var(--fill-1);
+  background: var(--bg-raised); box-shadow: var(--shadow-card);
   transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
-.btn:hover { background: var(--fill-2); }
+.btn:hover { background: color-mix(in srgb, var(--bg-raised) 94%, var(--label)); }
 .btn:active { transform: scale(.97); }
-.btn.filled { background: var(--accent-fill); color: var(--accent-ink); font-weight: 590; }
+.btn.filled { background: var(--accent-fill); color: var(--accent-ink); font-weight: 650; box-shadow: none; }
 .btn.filled:hover { background: color-mix(in srgb, var(--accent-fill) 88%, #000); }
-.btn.plain { background: none; color: var(--accent-text); padding-inline: 6px; }
+.btn.plain { background: none; box-shadow: none; color: var(--accent-text); padding-inline: 6px; }
 .btn.plain:hover { background: var(--fill-3); }
 .btn.danger { color: var(--danger); }
 
@@ -370,8 +354,8 @@ input[type="text"], input[type="password"], input[type="time"],
 input[type="search"], select, textarea {
   font: inherit; font-size: var(--t-body); color: var(--label);
   background: var(--bg-raised);
-  border: .5px solid var(--separator); border-radius: 6px;
-  padding: 5px 9px;
+  border: 1px solid var(--hairline); border-radius: 8px;
+  padding: 6px 10px;
   transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
 }
 select {
@@ -380,7 +364,7 @@ select {
 }
 input:focus-visible, select:focus-visible, textarea:focus-visible {
   border-color: var(--accent);
-  outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  outline: 3px solid var(--accent-soft);
   outline-offset: 0;
 }
 
@@ -398,7 +382,8 @@ input:focus-visible, select:focus-visible, textarea:focus-visible {
 }
 @media (prefers-contrast: more) {
   :root {
-    --separator: rgba(60, 60, 67, .5);
-    --label-2: rgba(60, 60, 67, .85);
+    --separator: rgba(26, 26, 28, .4);
+    --hairline: rgba(26, 26, 28, .45);
+    --label-2: #3F3D39;
   }
 }

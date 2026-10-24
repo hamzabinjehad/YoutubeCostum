@@ -1,378 +1,227 @@
 ---
 name: Costum for YouTube
-description: Apple-native settings surfaces for a YouTube control extension; system stack, semantic ramps, grouped inset lists.
+description: "Studio" — a control-desk language for a YouTube control extension; warm graphite neutrals, one teal signal, rounded-square controls, the rounded system face.
 colors:
-  accent: "#007AFF"
-  accent-dark: "#0A84FF"
-  accent-fill: "#0A6FDB"
-  accent-text: "#006ADB"
-  accent-text-dark: "#409CFF"
+  accent: "#0D9488"
+  accent-dark: "#2DBFA9"
+  accent-fill: "#0F766E"
+  accent-text: "#0F766E"
+  accent-text-dark: "#4FD1BD"
+  accent-soft: "rgba(13, 148, 136, .12)"
+  accent-soft-dark: "rgba(45, 191, 169, .16)"
   accent-ink: "#FFFFFF"
-  green: "#34C759"
-  red: "#FF3B30"
-  orange: "#FF9500"
-  gray: "#8E8E93"
-  label: "#1D1D1F"
-  label-2: "#6E6E73"
-  label-3: "rgba(60, 60, 67, .34)"
-  label-dark: "#F5F5F7"
-  label-2-dark: "#A1A1A6"
-  fill-1: "rgba(118, 118, 128, .12)"
-  fill-2: "rgba(118, 118, 128, .08)"
-  fill-3: "rgba(118, 118, 128, .05)"
-  switch-off: "rgba(120, 120, 128, .16)"
-  separator: "rgba(60, 60, 67, .16)"
-  hairline: "rgba(0, 0, 0, .08)"
-  bg: "#F2F2F7"
+  danger: "#C2410C"
+  danger-dark: "#FB923C"
+  orange: "#D97706"
+  label: "#1A1A1C"
+  label-2: "#5F5D58"
+  label-3: "rgba(26, 26, 28, .30)"
+  label-dark: "#EDECE8"
+  label-2-dark: "#A3A19B"
+  fill-1: "rgba(26, 26, 28, .07)"
+  fill-2: "rgba(26, 26, 28, .05)"
+  fill-3: "rgba(26, 26, 28, .035)"
+  switch-off: "rgba(26, 26, 28, .14)"
+  separator: "rgba(26, 26, 28, .09)"
+  hairline: "rgba(26, 26, 28, .10)"
+  bg: "#F4F3EF"
   bg-raised: "#FFFFFF"
-  bg-sunk: "#EBEBF0"
-  bg-dark: "#1C1C1E"
-  bg-raised-dark: "#2C2C2E"
-  segment-thumb: "#FFFFFF"
-  segment-thumb-dark: "#636366"
-  sheet: "rgba(28, 28, 30, .94)"
-  sheet-card: "rgba(58, 58, 60, .42)"
-  sheet-dim: "rgba(235, 235, 245, .72)"
+  bg-sunk: "#EAE8E3"
+  bg-dark: "#141416"
+  bg-raised-dark: "#1E1E21"
+  sheet: "rgba(20, 20, 22, .95)"
+  sheet-card: "rgba(255, 255, 255, .045)"
+  sheet-dim: "rgba(237, 236, 232, .72)"
   sheet-line: "rgba(255, 255, 255, .08)"
-  sheet-line-strong: "rgba(255, 255, 255, .14)"
+  sheet-line-strong: "rgba(255, 255, 255, .13)"
   mark-red-top: "#FF4B4B"
   mark-red-bottom: "#D6202B"
 typography:
   title:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif"
+    fontFamily: "ui-rounded, \"SF Pro Rounded\", -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
     fontSize: "15px"
-    fontWeight: 590
-    lineHeight: 1.45
-    letterSpacing: "-.014em"
+    fontWeight: 700
+    letterSpacing: "-.012em"
   body:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif"
+    fontFamily: "ui-rounded, \"SF Pro Rounded\", -apple-system, BlinkMacSystemFont, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: 1.45
-    letterSpacing: "-.006em"
+    letterSpacing: "-.004em"
   caption:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif"
     fontSize: "11px"
     fontWeight: 400
     lineHeight: 1.4
-    letterSpacing: ".006em"
-  section-heading:
-    fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Pro Text\", \"Helvetica Neue\", system-ui, sans-serif"
+    letterSpacing: ".01em"
+  eyebrow:
     fontSize: "11px"
-    fontWeight: 590
-    lineHeight: 1.4
-    letterSpacing: ".006em"
+    fontWeight: 650
+    letterSpacing: ".07em"
+    textTransform: "uppercase"
   arabic:
     fontFamily: "-apple-system, BlinkMacSystemFont, \"SF Arabic\", \"Geeza Pro\", system-ui, sans-serif"
   mono:
     fontFamily: "ui-monospace, \"SF Mono\", Menlo, monospace"
     fontSize: "13px"
 rounded:
-  input: "6px"
-  control: "8px"
-  segmented: "9px"
-  sheet-card: "10px"
-  list: "14px"
+  segment: "7.5px"
+  input: "8px"
+  switch: "8px"
+  control: "9px"
+  segmented: "10px"
+  list: "12px"
   sheet: "16px"
-  pill: "980px"
 spacing:
-  xs: "2px"
-  sm: "6px"
-  md: "8px"
-  row-gap: "12px"
+  gutter: "14px"
+  panel-gutter: "16px"
   row-inline: "14px"
-  panel-inline: "16px"
-  section: "18px"
-components:
-  list:
-    backgroundColor: "{colors.bg-raised}"
-    rounded: "{rounded.list}"
-  list-row:
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    padding: "9px 14px"
-    height: "44px"
-  list-row-hover:
-    backgroundColor: "{colors.fill-3}"
-  list-row-active:
-    backgroundColor: "{colors.fill-2}"
-  settings-row:
-    backgroundColor: "{colors.bg-raised}"
-    textColor: "{colors.label}"
-    rounded: "{rounded.list}"
-    padding: "9px 14px"
-    height: "48px"
-  button:
-    backgroundColor: "{colors.fill-1}"
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-  button-hover:
-    backgroundColor: "{colors.fill-2}"
-  button-filled:
-    backgroundColor: "{colors.accent-fill}"
-    textColor: "{colors.accent-ink}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "7px 14px"
-  button-plain:
-    textColor: "{colors.accent-text}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "7px 6px"
-  button-danger:
-    textColor: "{colors.red}"
-    typography: "{typography.body}"
-  switch-track:
-    backgroundColor: "{colors.switch-off}"
-    rounded: "{rounded.pill}"
-    width: "38px"
-    height: "23px"
-  switch-track-on:
-    backgroundColor: "{colors.accent}"
-  segmented:
-    backgroundColor: "{colors.fill-1}"
-    rounded: "{rounded.segmented}"
-    padding: "2px"
-  segmented-item:
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    rounded: "7px"
-    padding: "5px 6px"
-  segmented-item-selected:
-    backgroundColor: "{colors.segment-thumb}"
-    textColor: "{colors.label}"
-  input-text:
-    backgroundColor: "{colors.bg-raised}"
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    rounded: "{rounded.input}"
-    padding: "5px 9px"
-  input-search:
-    backgroundColor: "{colors.bg-raised}"
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    rounded: "{rounded.segmented}"
-    padding: "8px 11px"
-  section-label:
-    textColor: "{colors.label-2}"
-    typography: "{typography.section-heading}"
-    padding: "0 2px"
-  toast:
-    backgroundColor: "{colors.bg-raised}"
-    textColor: "{colors.label}"
-    typography: "{typography.body}"
-    rounded: "{rounded.pill}"
-    padding: "8px 14px"
-  panel-sheet:
-    backgroundColor: "{colors.sheet}"
-    textColor: "{colors.label-dark}"
-    rounded: "{rounded.sheet}"
-    width: "320px"
-  panel-card:
-    backgroundColor: "{colors.sheet-card}"
-    rounded: "{rounded.sheet-card}"
-  panel-row:
-    textColor: "{colors.label-dark}"
-    typography: "{typography.body}"
-    padding: "8px 12px"
-    height: "42px"
-  chip:
-    backgroundColor: "{colors.fill-1}"
-    textColor: "{colors.label-dark}"
-    typography: "{typography.body}"
-    rounded: "{rounded.control}"
-    padding: "7px 11px"
-  tab-icon:
-    backgroundColor: "{colors.gray}"
-    textColor: "{colors.accent-ink}"
-    rounded: "26%"
-    size: "20px"
+  heading-to-card: "8px"
+  section: "20px"
 ---
 
 # Design System: Costum for YouTube
 
 ## Overview
 
-**Creative North Star: "The System Settings Pane"**
+**Creative North Star: "Studio"**
 
-Costum's surfaces are drawn as if Apple had shipped them: the OS provides San Francisco, the palette is Apple's published system tints plus the semantic label / fill / separator ramps, and every control is a native primitive (switch, segmented control, grouped inset list, disclosure fold, thin sheet). Nothing is branded beyond a single red app mark. The visual identity is restraint; the product's character is utility, and the design's job is to get out of the way of 238 settings.
+Costum is a control desk for YouTube, so its surfaces are drawn like one rather than like a system settings pane: a warm graphite page, cards edged by a single line instead of lifted, a bank of rounded-square switches, small tracked capitals naming each group of controls, and one teal signal colour that means *this is on*. The red app mark is the only brand colour; nothing else is red unless it destroys something, and destructive actions are drawn in burnt orange so they never read as the brand.
 
-Two surfaces share one system. The toolbar popup follows `color-scheme: light dark` and is a fixed 340x560 pane on macOS (full-height sheet on a phone). The in-page panel is a dark-only thick blurred sheet floating over YouTube, carrying an inlined copy of the same tokens. Where the build had drifted between them (five type sizes in the panel, eleven in the popup) this pass collapsed both to the same four-step scale and the same tracking, and a test now holds the two in step.
+The rounded cut of the system face (`ui-rounded`, SF Pro Rounded on Apple platforms) carries the whole interface. It is never shipped: the OS provides it, and anywhere it does not exist the stack falls back to the plain system face.
 
-The containing app (`apple/App/ViewController.swift`) is a third surface, and the one place the system is expressed in SwiftUI rather than CSS. It uses the platform's own primitives outright: a grouped `Form`, Dynamic Type text styles, semantic colours, SF Symbols, Liquid Glass buttons on iOS 26 and macOS 26, and default-action buttons on the Mac. It carries two things from this system: feature tiles use the same tint as the matching surface tile in the extension, and anything blue that carries white text uses `accent-fill`. On iPad it keeps a 600pt reading column rather than stretching the phone layout, and at accessibility text sizes its rows stack the icon above the text.
+Two surfaces share one system. The toolbar popup follows `color-scheme: light dark` and is a fixed 340x560 pane on macOS (full-height on a phone, 400x600 on an iPad). The in-page panel is a dark-only sheet over YouTube, carrying an inlined copy of the same tokens because it lives in a shadow root. `tests/style-slop.py` holds the two in step: the type scale must match, and both must name their groups the same way.
 
-Density is settings-list density: 44px rows, 13px body, hairline separators indented to the label column, section headings in small grey caption above the card, and a trailing scope caption that says how far a section reaches.
+The containing app (`apple/App/ViewController.swift`) remains native SwiftUI and keeps the platform's own look; it is not part of this system.
 
 **Key Characteristics:**
-- System font, never shipped: `-apple-system` first, SF Arabic for `dir="rtl"`.
-- Apple system blue as the control accent; a darker blue for filled buttons and a separate accent for blue text, each chosen to clear AA on its ground.
-- One raised white/grey card per group, 14px corners, hairline ring instead of a border.
-- Four type steps (11/13/15/28) with per-step tracking; nothing interactive below 13px.
-- Motion only on transform, opacity and colour; the sheet curve `cubic-bezier(.32,.72,0,1)` at 180-240ms.
-- Full accessibility rails: reduced motion, reduced transparency, increased contrast, focus rings drawn inside clipped lists.
+- One signal colour in three strengths, each chosen to clear contrast in its role.
+- Cards are drawn by a 1px line, never by a shadow; only things that move cast one.
+- Rounded-square switches and knobs (8px track, 5.5px knob) instead of pills.
+- The selected segment is filled with the signal and carries white type.
+- Group names in 11px tracked capitals; Arabic, which has no case, drops the tracking.
+- Four type steps (11/13/15/22); nothing interactive below 13px.
+- Motion only on transform, opacity and colour, on `cubic-bezier(.2,.8,.2,1)` at 160-220ms.
 
 ## Colors
 
-Apple's system palette as published, with three accent variants so the same blue never fails contrast in a new role.
+### The signal (teal)
+- **Control accent** (`--accent`: `#0D9488`, dark `#2DBFA9`): the fill of things that carry no word: a switch that is on, a slider's run, the caret, the focus ring, `accent-color` on native checkboxes. 3.74:1 on white, over the 3:1 a control needs.
+- **Fill** (`--accent-fill`: `#0F766E`, both themes): the ground under white words: `.btn.filled`, the selected segment in both surfaces. White on it is 5.47:1.
+- **Text accent** (`--accent-text`: `#0F766E`, dark `#4FD1BD`): the signal as a word: the status pill when on, the Customize route, "on" counts, back links, modified slider readouts. 4.93:1 on the page, 5.47:1 on a card; 8.86:1 on a dark card.
+- **Soft** (`--accent-soft`): a 12-16% wash of the signal behind a word in the text accent: the status pill, the "on" count badges, the pinned Customize row, the panel's welcome card, a pressed chip.
 
-### Primary
-- **System Blue** (`accent`, dark: `accent-dark`): the control accent. Switch-on fill, segmented focus ring, caret, selection tint, `accent-color` on range sliders and checkboxes. Never used for words.
-- **Accessible Blue Fill** (`accent-fill`): the fill of any button that carries text (`.btn.filled`), light and dark alike; white on it clears 4.5:1 where white on system blue does not.
-- **Blue Text** (`accent-text`, dark: `accent-text-dark`): the accent used as a word: "On for this page" in the hero, the Customize back link, the "N settings on" counts, the tick in the mode picker, a modified slider readout, "More modes" summaries. Measured on the grouped background it sits on.
+### Semantic
+- **Danger** (`--danger`: `#C2410C`, dark `#FB923C`): destructive text only (`.btn.danger`, `.row-note.danger`). Burnt orange, not red, so it never reads as the brand mark.
+- **Warning** (`--orange`): the not-yet-allowed state, as a 14% wash under the status pill and the in-flow `.announce.warn` strip; the panel's `.health` card uses the same amber.
 
-### Secondary
-- **System Red** (`red`): `.btn.danger` text, `.row-note.danger`. Destructive only.
-- **System Orange** (`orange`): the not-yet-allowed warning: at 16% over transparent as the `.announce.warn` ground and as the hero status colour when the site is blocked. Warning only, never decoration.
-- **System Green** (`green`) and the other tints (indigo, purple, pink, teal, brown): surface tile fills via `--tint` on `.tab-icon`, each surface keeping one colour across the rail, the list and the drill header.
-- **System Gray** (`gray`): the default tile fill when no tint is set.
+### Surface tints
+`--blue`, `--green`, `--red`, `--orange`, `--indigo`, `--purple`, `--pink`, `--teal`, `--gray`, `--brown` exist for surface tiles only. `icons.js` gives each surface a hex; the tile paints it at 15% behind the glyph drawn in the colour itself, lifted toward white in dark mode so deep hues stay legible. No two tiles in one Customize group share a colour.
 
-### Neutral
-- **Label** (`label` / `label-dark`): primary text.
-- **Secondary Label** (`label-2` / `label-2-dark`): captions, hints, section headings, unmodified slider readouts, placeholders. Solid values, not Apple's alpha, so 11px hints clear AA.
-- **Tertiary Label** (`label-3`): decoration only: chevrons, the checkbox hover underline. Never text.
-- **Fills 1/2/3** (`fill-1..3`): the tinted-grey control ramp. Fill 1 is a resting button or segmented track, Fill 2 a pressed row or hovered button, Fill 3 a hovered row or plain-button hover. Dark mode doubles the alphas.
-- **Switch Off** (`switch-off`): the unlit switch track.
-- **Separator** (`separator`) and **Hairline** (`hairline`): 0.5px row dividers and the card's outer ring.
-- **Grouped Background** (`bg` / `bg-dark`), **Raised** (`bg-raised` / `bg-raised-dark`), **Sunk** (`bg-sunk`): the page, the card, and a recessed well.
-- **Segment Thumb** (`segment-thumb` / `segment-thumb-dark`): the selected segment. In the dark it is the lighter grey, since a white thumb would be darker than its own track.
-- **Sheet** (`sheet`), **Sheet Card** (`sheet-card`), **Sheet Dim** (`sheet-dim`), **Sheet Line / Line Strong**: the in-page panel's own dark material: a .94-alpha near-black sheet, translucent grouped cards on it, a .72-alpha secondary label that holds AA over YouTube's light theme, and two white hairlines.
-- **Mark Red** (`mark-red-top` -> `mark-red-bottom`): the only gradient in the system, the app icon's vertical red. Not a palette colour for anything else. The same mark, three white sliders on rows at 28/50/72% with knobs at 71/37/59%, is the popover hero, the panel header, the FAB glyph, the Panel tile, and every shipped PNG. `scripts/icons.swift` draws the PNGs (extension, toolbar, iOS light/dark/tinted, macOS grid), with two sliders instead of three below 24px.
+### Neutrals
+- **Label** (`#1A1A1C` / `#EDECE8`): primary text.
+- **Secondary label** (`#5F5D58` / `#A3A19B`): captions, hints, scope captions, unmodified readouts, placeholders. 5.92:1 on the page; 6.44:1 on a dark card.
+- **Tertiary** (`label-3`): decoration only (chevrons). Never text.
+- **Fills 1/2/3**: a warm-ink ramp for tracks and hovers. Fill 1 is the segmented track and the off pill; Fill 2 and 3 are pressed and hovered rows.
+- **Hairline / Separator**: the card edge (1px) and row dividers (1px, inset 14px to the label column).
+- **Grounds**: page `#F4F3EF` (warm paper) / `#141416`; card `#FFFFFF` / `#1E1E21`; well `#EAE8E3` / `#0E0E10`.
+- **Sheet** (panel): `rgba(20,20,22,.95)` over a 30px blur; cards are a 4.5% white wash with a 1px inner line; secondary text is `rgba(237,236,232,.72)`, which holds AA over either YouTube theme.
 
 ### Named Rules
-**The Three Blues Rule.** A switch has no text, so its fill is system blue. A filled button has a word on it, so it uses `accent-fill`. Blue that is itself a word uses `accent-text`. Never substitute one for another; a test measures each pairing against its ground.
+**The Three Strengths Rule.** A control without a word takes `--accent`; a fill under a word takes `--accent-fill`; a word takes `--accent-text`. A test measures each against the grounds the sheet declares.
 
-**The Decoration Grey Rule.** `label-3` draws chevrons and discs and nothing readable. Text stops at `label-2`.
-
-**The One Gradient Rule.** The app mark carries the system's only gradient. Text is never gradient-clipped; no purple or violet gradient exists anywhere.
+**The One Red Rule.** The app mark is the only red and the only gradient. Danger is burnt orange.
 
 ## Typography
 
-**Display Font:** San Francisco via `-apple-system` (SF Pro Display named for the Chrome build; Helvetica Neue, system-ui fallback)
-**Body Font:** San Francisco via `-apple-system` (SF Pro Text)
-**Arabic Font:** SF Arabic (Geeza Pro fallback), switched on `body[dir="rtl"]`
-**Label/Mono Font:** `ui-monospace` / SF Mono / Menlo, for the code textarea only; same 13px, never smaller
-
-**Character:** the platform's own settings type: quiet, dense, tracked by size the way SF is meant to be. Semibold is 590 (SF's variable weight), never 700. Antialiased, `font-synthesis: none`, optical sizing left to the system.
+**Face:** `ui-rounded` (SF Pro Rounded), falling back to the system face. **Arabic:** SF Arabic / Geeza Pro, switched on `dir="rtl"`. **Mono:** `ui-monospace` for the code field, at body size.
 
 ### Hierarchy
-- **Display** (28px, tracking -.02em): declared as `--t-display`; no shipped surface sets it. Reserved for a future onboarding or empty state, not a step in current use.
-- **Title** (590, 15px, tracking -.014em): names a screen: the hero title, the Customize workspace title, the drill header beside its surface tile, the panel header, the gate title.
-- **Body** (400, 13px, tracking -.006em, line-height 1.45): every row label, every control label, every button, every input, the toast. The floor for anything you operate.
-- **Section Heading** (590, 11px, tracking .006em, `label-2`): the group heading above a card, sentence case, with the scope caption at 400 on its trailing edge. The panel's `.sec-label` sets it at 600 with .05em tracking, still sentence case.
-- **Caption** (400, 11px, tracking .006em, line-height 1.4, `label-2`): secondary text you only read: row sublabels, hints, notes, counts, "where" lines under search results.
+- **Display** (22px, -.02em): reserved for an onboarding or empty state; not used today.
+- **Title** (15px, 700, -.012em): the popup name, the Customize and surface titles, the panel header, the gate.
+- **Body** (13px, 400, -.004em, 1.45): every row, control, button, input and toast. Row labels that open something (`.settings-row`, the changes summary) take 560; selected or emphasised items take 650.
+- **Eyebrow** (11px, 650, uppercase, .07em, secondary label): the name of a group above its card, in both surfaces. Its trailing scope caption ("Every video", "All of YouTube") is 500, sentence case and caption tracking, so it reads as a qualifier. In Arabic the tracking is removed.
+- **Caption** (11px, 400, .01em, 1.4): sublabels, hints, counts, "where" lines under search results, the status pill (at 600).
 
 ### Named Rules
-**The Caption Floor Rule.** Nothing interactive is set at caption size. A button, summary, input, chip or segment is body (13px) at minimum; a slider readout that becomes a reset button stays at body. Enforced by test.
+**The Caption Floor Rule.** Nothing interactive is set at 11px. Enforced by test.
 
-**The Scale-Only Rule.** Outside `:root`, `font-size` is always `var(--t-*)`, never a pixel literal. Enforced by test.
+**The Scale-Only Rule.** Outside `:root`, `font-size` is always `var(--t-*)`. Enforced by test.
 
-**The Tabular Number Rule.** Counts, speeds and readouts set `font-variant-numeric: tabular-nums` and `unicode-bidi: plaintext`, so "1.25×" stays "1.25×" in Arabic and columns of counts do not wobble.
+**The Tabular Number Rule.** Speeds, counts and readouts use `tabular-nums` and `unicode-bidi: plaintext`, so "1.25×" stays "1.25×" in Arabic.
 
 ## Layout
 
-The popup is a fixed pane: 340px wide, 560px tall, `overflow: hidden`, one scrolling region between a pinned header and a pinned footer. Hero card and search field sit above the scroll; on the Control Center the Customize YouTube row is pinned below it, separated by a 0.5px rule, so the route to every setting never needs a scroll. Once content has scrolled under the header the scroll region's top edge draws the same 0.5px rule. On a phone (coarse pointer, device width ≤480px) the pane becomes 100% x 100dvh; on an iPad (coarse pointer, wider device) it is a 400x600 popover, 600 being Safari's popover height cap. Both key on `device-width`, never the viewport: a popover's viewport is the popover, so a viewport rule is circular and collapsed the iPad popover to 130px. The in-page panel is a 320px sheet, `max-height: min(76vh, 620px)`, anchored to a configurable corner; at ≤430px it becomes a bottom sheet (`inset-inline: 0; bottom: 0; max-height: 82vh`, 14px top corners, a 36x5px grabber, safe-area padding).
+The popup is a fixed pane with one scrolling region. Above it: the **header bar** (no card; 36px mark, title, status pill, master switch) and, in Customize, the search field. Below it on the Control Center: the **Customize YouTube** row, pinned behind a 1px rule so the route to every setting never needs a scroll. When content scrolls under the header, the scroll region's top edge draws the same rule.
 
-The horizontal rhythm is a single gutter: 14px pane inset in the popup, 16px in the panel, 14px row padding inside a card (12px in the panel), and separators that start 14px in so they align with the label column. Vertical rhythm is 8px between a heading and its card, 8px between stacked cards, 18px between sections (14px between drill groups), 6px inside a folded group.
+One gutter: 14px in the popup, 16px in the panel; 14px row padding inside a card (12px in the panel), separators inset to the same column. 8px between a group name and its card, 20px between groups. Drilled surfaces add no inline padding of their own, so their cards sit on the Control Center's gutter. `.stack-row` (sliders, text, code under their label) shares the `.list-row` gutter and separator.
 
-Rows are 44px minimum (42px in the panel, 48px for settings rows), 12px gap between label and control. A label and a segmented control share a line if they fit and the control wraps to its own full-width line if not; flexbox measures, no option-count threshold. Long-form controls (sliders, text, code) stack under their label in a `.stack-row` because at 340px nothing fits beside a label. A `.stack-row` shares the `.list-row` gutter (14px) and its separator grammar (a 0.5px rule inset 14px, drawn by the following row), so mixed cards line up down one label column. A drilled surface adds no inline padding of its own: its cards sit on the same 14px gutter as the Control Center's.
+Rows are 44px minimum (48px for `.settings-row`, 42px in the panel). Under `pointer: coarse` every control reaches 44px. On a phone the popup is 100% x 100dvh and the panel becomes a bottom sheet (16px top corners, grabber, safe-area padding). Width rules key on `device-width`, never the viewport, for the reasons recorded in `popup.css`.
 
-Touch: under `pointer: coarse` every control gets a 44px minimum height (48px rows), including the back button, the segment buttons, the search field and the slider readout button. The panel's close button grows from 26px to 36px, and its chips and segments reach 44px, on any coarse pointer, not only at phone width, so the iPad's floating sheet is finger-sized too.
-
-Direction: Arabic flips through logical properties everywhere except the chevron, whose two physical borders are mirrored by a single rotation rule so RTL does not mirror twice.
+Direction flips through logical properties; chevrons are mirrored by a single rotation rule.
 
 ## Elevation & Depth
 
-A hybrid, mostly tonal. Cards are raised by colour (`bg-raised` on `bg`) and ringed by a 0.5px hairline shadow, not lifted. Real shadows are reserved for objects that are physically on top of something: a switch thumb, a selected segment, the toast, the floating sheet. The in-page panel adds material: `backdrop-filter: blur(30px) saturate(1.8)` under a .94-alpha sheet, disabled under reduced transparency.
-
-### Shadow Vocabulary
-- **Card ring** (`box-shadow: 0 0 0 .5px var(--hairline), 0 1px 1px rgba(0,0,0,.03)`; dark: ring only): every grouped list, settings row, hero, confirm card. A border that does not take layout.
-- **Thumb** (`0 3px 8px rgba(0,0,0,.12), 0 1px 1px rgba(0,0,0,.04), 0 0 0 .5px rgba(0,0,0,.04)`; dark: `0 3px 8px rgba(0,0,0,.5), 0 0 0 .5px rgba(0,0,0,.3)`): the switch knob and the selected segment.
-- **Sheet** (`0 24px 60px rgba(0,0,0,.22), 0 0 0 .5px rgba(0,0,0,.06)`; dark: `.6` / white ring): the popup toast; the in-page panel uses `0 24px 60px rgba(0,0,0,.55)` and its toast `0 10px 30px rgba(0,0,0,.45)`.
-- **Tile gloss** (`inset 0 .5px 0 rgba(255,255,255,.28)`): the surface tile's top highlight, and the app mark's.
-
-### Named Rules
-**The Ring Not Border Rule.** A card's edge is a 0.5px hairline in the shadow stack. No card draws a `border`; only inputs, the panel sheet and chips (which sit on a translucent ground) carry a real 0.5px stroke.
-
-**The Lifted Only If Movable Rule.** Drop shadows go on things that move or float: thumbs, toasts, the sheet, the FAB. Rows, cards and headers stay flat.
+Flat. A card is `bg-raised` on `bg` with a 1px hairline (`--shadow-card: 0 0 0 1px var(--hairline)`), never a drop shadow. Shadows go only on things that move or float: the switch knob (`0 1px 2px`), the toast and the panel sheet (`0 18px 40px`). The panel adds material: `blur(30px) saturate(1.8)` under a .95 sheet, removed under reduced transparency.
 
 ## Shapes
 
-Continuous Apple corners at four sizes: 6px on text inputs, 8px on buttons, chips and the drill's folded summary (10px), 9px on the segmented track with 7px segments inside, 14px on grouped lists and the hero, 16px on the in-page sheet. Nothing between 16px and the 980px pill; the pill is the switch track and the toast only. Circles are the switch knob, the FAB, the panel close disc.
-
-Surface tiles are rounded squares whose radius is 26% of their size (20px rail, 21px drill header, 27px list row, 34px hero mark, 44px gate mark) with the glyph knocked out in white at 65%.
-
-Joined shapes square their shared edge: an open settings row loses its bottom corners and the mode picker below it loses its top corners, with a 0.5px separator between; the panel's disclosure summary and its card do the same at 10px.
-
-Chevrons are two 1.7-1.8px borders on a 6.5-7px box, rotated; a back arrow, a fold arrow and a disclosure arrow are all the same shape at a different rotation, and open state rotates rather than swaps.
+Rounded squares throughout, nothing past 16px except the pinned pill radius token (unused by any component now). Segments 7.5px inside a 10px track; inputs 8px; switch tracks 8px with 5.5px knobs; buttons, chips and the panel close key 9-10px; cards 12px; the panel sheet 16px; the panel's floating button 14px; the app mark 10px (popup) / 7px (panel). Surface tiles are 30% of their size. Circles survive only in the status dot.
 
 ## Components
 
+### Header bar (popup)
+Mark, title, and a **status pill**: an inline 6px dot plus the state in words, 11px/600 in a 6px-cornered pill. On: text accent on the soft signal. Off: secondary label on Fill 1. Blocked: amber on a 14% amber wash. The mark greys out when the master switch is off.
+
+### Switch (`.sw-track` / panel `.switch`)
+40x24 rounded square, `switch-off` at rest, `--accent` when on; an 18px white rounded-square knob travels 16px. Drawn on a span with the input over it for hit-testing (Safari draws no pseudo-elements on inputs).
+
+### Segmented control
+Fill 1 track, 3px padding, 10px corners. The selected segment is `--accent-fill` with white 650 type, so the active speed reads at a glance. The panel's `.wrap` grid balances eight speeds into two rows of four.
+
 ### Buttons
-- **Shape:** gently rounded (8px), body type, `7px 14px`.
-- **Default (`.btn`):** Fill 1 ground, label text; hover Fill 2; active `scale(.97)`.
-- **Filled (`.btn.filled`):** `accent-fill` ground, white text, weight 590; hover darkens 12% toward black. The confirm and gate primary.
-- **Plain (`.btn.plain`):** no ground, `accent-text`, 6px inline padding; hover Fill 3. Reset and Cancel.
-- **Danger (`.btn.danger`):** default shape with `red` text.
-- **Small (`.btn.small`, `.mode-tools .btn`):** 32px min-height, 4px block padding, in tool rows.
-- **Back (`button.back`):** text-only `accent-text` at body size with a leading chevron; the way out of Customize and of a drilled surface.
-- **Focus:** 3px ring of the accent at 55% alpha, 1px outside; inputs use 45% and 0 offset.
+- **Default** (`.btn`): card ground with the 1px hairline, 560 weight; hover tints toward the label.
+- **Filled** (`.btn.filled`): `--accent-fill`, white, 650.
+- **Plain** (`.btn.plain`): no ground, text accent.
+- **Danger** (`.btn.danger`): default shape, danger text.
 
-### Switch (`.sw` / `.switch`)
-- 38x23px pill track, `switch-off` at rest, system blue on; 20px white knob with the thumb shadow travelling 15px on `--dur`. Drawn on a span with an invisible input over it for hit-testing (Safari does not render pseudo-elements on inputs). Disabled: 40% opacity.
+### Cards and rows
+`.list`, `.settings-row`, `.confirm` and the changes summary are white (dark: `#1E1E21`) 12px cards with the hairline. Rows hover Fill 3 and press Fill 2. With nothing changed, "Your changes" is an empty slot: a dashed outline with quiet text. The pinned Customize row is the one tinted card: soft signal ground, title in the text accent.
 
-### Segmented Control (`.segmented`)
-- Sunken Fill 1 track, 9px corners, 2px padding and gap; segments are 7px, body size, tabular numbers, `unicode-bidi: plaintext`. Selected segment is the `segment-thumb` with the thumb shadow and weight 590. Hover Fill 3, active `scale(.97)`. `.grid2` lays four choices as two rows of two; the panel's `.wrap` sets `--cols` so its rows balance (eight speeds are two rows of four; six or fewer stay on one line). Labels truncate with an ellipsis rather than overlap.
+### Counts
+A surface or group with settings on shows its count as a badge: text accent on the soft signal, 6px corners. Counts with nothing on stay plain secondary text.
 
-### Chips (panel only)
-- Fill 1 ground, 0.5px `sheet-line-strong` stroke, 8px corners, `7px 11px` (10px 13px on phone), body text, a 14px inline SVG glyph at 85% opacity that goes fully opaque when pressed. Hover Fill 2, active `scale(.96)`. Every chip carries a glyph, so a row never mixes symbol and bare-text buttons, and chips grow to fill their row so a wrapped row does not end ragged. A loop is the repeat symbol, never opposed arrows.
+### Inputs
+Card ground, 1px hairline, 8px corners. Focus: accent border plus a 3px soft-signal ring. The search field is 10px-cornered. The shortcut keycap has a 2px bottom edge, like a key.
 
-### Cards / Containers
-- **Grouped list (`.list`, panel `.card`):** `bg-raised` (panel: `sheet-card`), 14px corners (panel: 10px), card ring, `overflow: hidden`. Rows inside are 44px (42px) with a 0.5px separator inset to the label column; hover Fill 3, active Fill 2. Focus rings inside a clipped list draw at -3px offset.
-- **Settings row (`.settings-row`):** a single-row card that acts as a button, 48px, with a title/sublabel stack and a trailing chevron. Opens the mode picker in place.
-- **Hero:** the 60px status card: 34px app mark, title, status caption that turns `accent-text` and 500 weight when the master switch is on, grey while checking, orange when blocked; the mark desaturates to 55% when off.
-- **Confirm card:** the in-place destructive confirm, `10px 12px`, ring, a hint and a two-button row.
+### Chips (panel)
+Fill 3 ground, 1px strong line, 10px corners, 560 weight, a 14px glyph. A pressed chip takes the soft signal and the text accent.
 
-### Inputs / Fields
-- **Text / time / password / textarea:** `bg-raised`, 0.5px `separator` stroke, 6px corners, `5px 9px`, body size; hover stroke `label-3`; focus stroke accent plus the 45% ring. Code textarea is mono at the same size, 76px minimum, vertical resize.
-- **Search:** same field at 9px corners and `8px 11px`, pinned under the header, placeholder in `label-2`.
-- **Range:** native with `accent-color`; its readout is a `label-2` tabular number that becomes an `accent-text` dashed-underlined reset button once the value leaves default.
-- **Keycap:** shortcut recorder, `bg-raised` with a hairline stroke, 32px, turns accent-stroked and `accent-text` while recording.
-- **Select (panel):** Fill 1 with a strong hairline stroke, 7px corners.
+### Toast
+Popup: a card-coloured pill with the sheet shadow above the pane's foot. Panel: the sheet material in a 12px rounded rectangle above the button.
 
-### Navigation
-- Three levels, one grammar: Control Center (root) -> Customize (catalogue grouped by reach) -> a drilled surface. Each deeper level has a sticky head on `bg` with a 0.5px bottom rule: back button on the leading edge, title at 15/590 with the surface's 21px tile, and on a drilled surface a per-surface Reset (small plain button) whose confirm card appears beneath the head. Section headings carry a trailing scope caption in regular weight: "This video", "Every video", "Every watch page", "All of YouTube".
-- Disclosure folds (`details.group`, `#more-profiles`, `#changed`, `.panel-disclosure`) hide the marker, set the summary at body size in `label`, and rotate the chevron on open; a fold with nothing in it renders as quiet grey text with no card.
-- The mode picker is a grouped list with `role="radiogroup"`: the chosen row carries an 18px stroked tick in `accent-text` and a 590 label; unchosen rows keep the tick's space so labels align.
+### Panel
+A 44px rounded-square floating button opens a 320px sheet: sticky header with the 24px mark, a 15/700 title and a 28px rounded-square close key; then eyebrow-named sections over line-edged cards. The welcome card uses the soft signal; the health warning uses amber.
 
-### Toast (`.announce`, panel `.toast`)
-- A pill (980px) of `bg-raised` with the sheet shadow, body text, centered, absolutely positioned 12px above the pane's foot so nothing under the finger moves; enters with `toast-in` (4px rise, fade) over `--dur-fast`. The panel's toast is the blurred sheet material with a strong hairline, weight 500, above the FAB. Both are live regions. The warning variant (`.announce.warn`) is static, orange-tinted, caption size, in the flow under the header.
+### Surface tile (`.tab-icon`)
+Soft tile: the tint at 15% behind the tint-coloured glyph, corners at 30% of the size, one `--icon` variable sizing both.
 
-### In-Page Panel (signature)
-- A 44px circular FAB in the sheet material opens a 320px sheet of `sheet` over `blur(30px) saturate(1.8)`, 16px corners, 0.5px strong hairline, sheet shadow; enters with `sheet-in` (8px rise, `scale(.97)`, fade) on the sheet curve and arrives settled on rebuilds. Sticky blurred header with the 22px mark, a 15/590 title and a 26px Fill 1 close disc. Sections are `.sec-label` + `.sec-scope` over one `.card`. At ≤430px it becomes the bottom sheet described in Layout.
+## Focus
 
-### Surface Tile (`.tab-icon`)
-- A rounded square of one system tint with a white SVG glyph, sized by a single `--icon` variable so the corner (26%) and the glyph (65%) scale together. Styled once in apple.css; the icon set is shared between the rail, the catalogue and the drill head (enforced by test). No two tiles in one Customize group share a tint; a colour may repeat only across groups.
+A solid 2px `--accent` ring, 2px outside the control. Inside clipped cards the ring draws 2px inside instead.
 
 ## Do's and Don'ts
 
 ### Do:
-- **Do** set every `font-size` through `--t-caption` / `--t-body` / `--t-title`; the scale is the only source of sizes.
-- **Do** pair every step with its tracking token (`--track-*`); SF is tracked by size, not left at `normal`.
-- **Do** choose the blue by role: `--accent` for controls, `--accent-fill` under white text, `--accent-text` for words.
-- **Do** build a group as caption heading (with scope on the trailing edge) above one ringed card of 44px rows, separators inset to the label.
-- **Do** keep transitions on `background`, `color`, `border-color`, `box-shadow`, `transform`, `opacity` and `filter`, on `--ease` at `--dur` (240ms) or `--dur-fast` (180ms).
-- **Do** give every control a 44px target under `pointer: coarse` and a visible 3px accent ring on `:focus-visible`.
-- **Do** write "mode", never "profile", in user-facing copy; name the levels Control Center, Customize and the surface's own name; use `arCount` (one / two / 3-10 / 11+) for every Arabic count.
-- **Do** keep the popup and the panel token blocks identical when either changes; the style test compares them.
+- **Do** take every `font-size` from `--t-*` and pair it with its `--track-*`.
+- **Do** choose the teal by role: `--accent`, `--accent-fill` or `--accent-text`.
+- **Do** build a group as an eyebrow name (scope on the trailing edge) above one line-edged card.
+- **Do** keep the popup and panel token blocks in step; the style test compares them.
+- **Do** write "mode", never "profile", in user-facing copy.
 
 ### Don't:
-- **Don't** put anything interactive at 11px.
-- **Don't** round a card past 16px; only the switch track and the toast are pills.
-- **Don't** draw a thick (≥3px) border down one side of anything, or a `border` on a card; the hairline ring is the edge.
-- **Don't** animate width, height, padding, margin or offsets; don't loop an animation; don't use an easing whose y control points leave 0..1.
-- **Don't** clip text to a gradient or introduce any gradient beyond the app mark.
-- **Don't** use `label-3` for text, or Apple's raw .6-alpha secondary label for 11px hints; the solid `label-2` values exist because the alpha fails AA at this size.
-- **Don't** shout section headings: sentence case, no `text-transform: uppercase`.
-- **Don't** ship a font file; the system stack provides SF, and the Arabic deck switches the stack rather than the size.
+- **Don't** set anything interactive at 11px.
+- **Don't** lift a card with a shadow, or round one past 16px.
+- **Don't** use red for anything but the app mark.
+- **Don't** animate layout properties, loop an animation, or use an overshooting curve.
+- **Don't** use `label-3` for text.
+- **Don't** ship a font file.
