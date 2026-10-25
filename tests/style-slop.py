@@ -157,14 +157,18 @@ def token(name, dark=False):
 # contrast, a word does not, and the two most status-bearing strings in the
 # popup — whether the extension is on, and how many settings a surface has
 # running — are set in it. 4.5:1 is AA for text this size.
+# Measured against the grounds the sheet itself declares, so a new palette is
+# checked against its own surfaces rather than the ones it replaced.
 PAIRS = [
-    ('accent-text on the grouped background', token('accent-text'), '#F2F2F7', False),
-    ('accent-text on white', token('accent-text'), '#FFFFFF', False),
-    ('accent-text on the raised surface (dark)', token('accent-text', True), '#2C2C2E', True),
-    ('accent-text on the base surface (dark)', token('accent-text', True), '#1C1C1E', True),
+    ('accent-text on the page', token('accent-text'), token('bg'), False),
+    ('accent-text on a card', token('accent-text'), token('bg-raised'), False),
+    ('accent-text on a card (dark)', token('accent-text', True), token('bg-raised', True), True),
+    ('accent-text on the page (dark)', token('accent-text', True), token('bg', True), True),
+    ('secondary text on the page', token('label-2'), token('bg'), False),
+    ('secondary text on a card (dark)', token('label-2', True), token('bg-raised', True), True),
 ]
 for label, fg, bg, _ in PAIRS:
-    if not fg:
+    if not fg or not bg:
         check('the text accent is declared: ' + label, False)
         continue
     got = contrast(fg, bg)
@@ -237,8 +241,14 @@ if panel_css:
     raw = re.findall(r'font-size:\s*([0-9.]+)px', body)
     check('the panel takes its type from the scale, not from literals',
           not raw, ', '.join(sorted(set(raw))))
-    check('the panel does not shout its section labels',
-          'text-transform: uppercase' not in body)
+    # The two surfaces name their groups one way. The popover moved to tracked
+    # capitals; a panel left in sentence case would be the drift this guards.
+    popup_caps = re.search(r'^\.label\s*\{[^}]*text-transform:\s*uppercase',
+                           open(os.path.join(ROOT, 'extension/ui/popup/popup.css'), encoding='utf-8').read(),
+                           re.M) is not None
+    panel_caps = re.search(r'\.sec-label\s*\{[^}]*text-transform:\s*uppercase', body) is not None
+    check('the panel names its sections the way the popover does',
+          popup_caps == panel_caps, 'popover %s, panel %s' % (popup_caps, panel_caps))
     # all:initial resets the face to the browser's serif, and the floating
     # button spent a session in Times because the face was set a level too low.
     check('the panel sets its face on the host, where all:initial resets it',

@@ -143,35 +143,32 @@
   }
 
   :host {
-    --ink: #F5F5F7;
-    /* Apple's secondaryLabel alpha is .60, which holds on a dark page and
-       falls to 4.09:1 once this sheet sits over YouTube's light theme and
-       lightens. .72 clears AA against either backdrop. */
-    --dim: rgba(235,235,245,.72);
+    /* The popup's "Studio" dark ramp: warm graphite, one teal signal. */
+    --ink: #EDECE8;
+    /* Translucent so it holds over either YouTube theme: .72 clears AA on the
+       sheet whether the page behind it is dark or light. */
+    --dim: rgba(237,236,232,.72);
     --line: rgba(255,255,255,.08);
-    --line-strong: rgba(255,255,255,.14);
-    --fill-1: rgba(118,118,128,.24);
-    --fill-2: rgba(118,118,128,.36);
-    --fill-3: rgba(118,118,128,.14);
-    --switch-off: rgba(120,120,128,.32);
-    --accent: #0A84FF;
+    --line-strong: rgba(255,255,255,.13);
+    --fill-1: rgba(255,255,255,.08);
+    --fill-2: rgba(255,255,255,.12);
+    --fill-3: rgba(255,255,255,.05);
+    --switch-off: rgba(255,255,255,.16);
+    --accent: #2DBFA9;
     --accent-ink: #FFFFFF;
-    /* White on the system blue is 3.65:1. Anything filled that carries a word
-       uses this instead; switches keep --accent, having no text to read. */
-    --accent-fill: #0A6FDB;
-    /* Blue text on this sheet, not blue fill. System blue reaches only
-       3.93:1 here; a dark surface wants the lighter tint. */
-    --accent-text: #409CFF;
-    /* A thick material, not a thin one. At .82 the sheet over a white page
-       composites to a mid grey (#454547) that nothing reads well against;
-       this stays dark whatever is behind it and still blurs. */
-    --sheet: rgba(28,28,30,.94);
-    --card: rgba(58,58,60,.42);
-    --thumb-shadow: 0 3px 8px rgba(0,0,0,.5), 0 0 0 .5px rgba(0,0,0,.3);
-    --ease: cubic-bezier(.32,.72,0,1);
-    --dur: .24s;
-    --dur-fast: .18s;
-    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    /* White on the control teal is under AA; anything filled that carries a
+       word uses the deeper fill (5.47:1). */
+    --accent-fill: #0F766E;
+    --accent-text: #4FD1BD;
+    --accent-soft: rgba(45,191,169,.16);
+    /* A thick material: dark whatever is behind it, and still blurred. */
+    --sheet: rgba(20,20,22,.95);
+    --card: rgba(255,255,255,.045);
+    --thumb-shadow: 0 1px 2px rgba(0,0,0,.5);
+    --ease: cubic-bezier(.2,.8,.2,1);
+    --dur: .22s;
+    --dur-fast: .16s;
+    --font: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
     /* The same four steps and the same tracking as the popover. This surface
        had its own five sizes between 11px and 16px, which is how one product
@@ -180,16 +177,17 @@
     --t-caption: 11px;
     --t-body: 13px;
     --t-title: 15px;
-    --track-caption: .006em;
-    --track-body: -.006em;
-    --track-title: -.014em;
+    --track-caption: .01em;
+    --track-body: -.004em;
+    --track-title: -.012em;
+    --track-eyebrow: .07em;
   }
 
   /* ---- the button ---- */
   .fab {
     position: fixed; z-index: 2147483000;
-    width: 44px; height: 44px; border: .5px solid var(--line-strong);
-    border-radius: 50%; background: var(--sheet); color: var(--ink);
+    width: 44px; height: 44px; border: 1px solid var(--line-strong);
+    border-radius: 14px; background: var(--sheet); color: var(--ink);
     -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8);
     display: grid; place-items: center; cursor: pointer; padding: 0;
     box-shadow: 0 6px 20px rgba(0,0,0,.35);
@@ -199,12 +197,12 @@
   .fab:active { transform: scale(.92); }
   .fab svg { width: 19px; height: 19px; display: block; }
   .fab:focus-visible, .panel :focus-visible {
-    outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent);
+    outline: 2px solid var(--accent);
     outline-offset: 2px;
   }
   /* .card clips to round its corners, so a ring drawn outside a row is sliced
      down to a stray blue line. Draw it inside. */
-  .card .row.tap:focus-visible { outline-offset: -3px; border-radius: 0; }
+  .card .row.tap:focus-visible { outline-offset: -2px; border-radius: 0; }
 
   /* ---- the sheet ---- */
   .panel {
@@ -215,7 +213,7 @@
     background: var(--sheet); color: var(--ink);
     -webkit-backdrop-filter: blur(30px) saturate(1.8);
     backdrop-filter: blur(30px) saturate(1.8);
-    border: .5px solid var(--line-strong); border-radius: 16px;
+    border: 1px solid var(--line-strong); border-radius: 16px;
     padding: 4px 0 12px;
     display: none; flex-direction: column;
     box-shadow: 0 24px 60px rgba(0,0,0,.55);
@@ -245,20 +243,20 @@
     background: var(--sheet);
     -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
   }
-  header b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590; letter-spacing: -.014em; }
+  header b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700; }
   /* The popover's mark at sheet size, so the panel is recognisably the same
      product as the toolbar icon that opens its settings. */
   .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .brand-mark {
-    flex: 0 0 auto; width: 22px; height: 22px; border-radius: 5.5px;
+    flex: 0 0 auto; width: 24px; height: 24px; border-radius: 7px;
     background: linear-gradient(180deg, #FF4B4B 0%, #D6202B 100%);
     box-shadow: inset 0 .5px 0 rgba(255, 255, 255, .35);
     display: grid; place-items: center; color: #FFFFFF;
   }
   .brand-mark svg { width: 15px; height: 15px; display: block; }
   .x {
-    background: var(--fill-1); border: 0; border-radius: 50%;
-    width: 26px; height: 26px; color: var(--dim); cursor: pointer;
+    background: var(--fill-1); border: 0; border-radius: 8px;
+    width: 28px; height: 28px; color: var(--dim); cursor: pointer;
     display: grid; place-items: center; font-size: var(--t-title); letter-spacing: var(--track-title); line-height: 1; padding: 0;
     transition: background var(--dur-fast) var(--ease);
   }
@@ -266,16 +264,19 @@
 
   /* ---- sections ---- */
   section { display: flex; flex-direction: column; padding: 0 16px 14px; }
+  /* Named the popup's way: small tracked capitals above the card. */
   .sec-label {
     display: flex; align-items: baseline; gap: 8px;
-    font-size: var(--t-caption); letter-spacing: var(--track-caption); font-weight: 600; letter-spacing: .05em;
+    font-size: var(--t-caption); letter-spacing: var(--track-eyebrow); font-weight: 650;
+    text-transform: uppercase;
     color: var(--dim);
     padding: 8px 2px 7px;
   }
+  :host-context([dir="rtl"]) .sec-label { letter-spacing: 0; }
   .sec-label > span:first-child { flex: 1 1 auto; min-width: 0; }
   /* How far the section reaches, in regular weight and without the heading's
      tracking, so it reads as a qualifier rather than a second heading. */
-  .sec-scope { flex: 0 0 auto; font-weight: 400; letter-spacing: var(--track-caption); }
+  .sec-scope { flex: 0 0 auto; font-weight: 500; letter-spacing: var(--track-caption); text-transform: none; }
   .panel-disclosure .sec-scope { color: var(--dim); font-size: var(--t-caption); margin-inline-start: auto; margin-inline-end: 10px; }
   /* What the mode in force does, or how modes work, under the grid. */
   .mode-note { display: block; font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--dim); line-height: 1.4; padding: 0 2px; }
@@ -283,23 +284,24 @@
   .panel-disclosure { margin: 0 16px 14px; }
   .panel-disclosure > summary {
     list-style: none; display: flex; align-items: center; justify-content: space-between;
-    min-height: 44px; padding: 8px 12px; border-radius: 10px;
-    background: var(--card); color: var(--ink); cursor: pointer;
+    min-height: 44px; padding: 8px 12px; border-radius: 12px;
+    background: var(--card); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); cursor: pointer;
   }
   .panel-disclosure > summary::-webkit-details-marker { display: none; }
-  .panel-disclosure[open] > summary { border-radius: 10px 10px 0 0; }
-  .panel-disclosure .card { border-radius: 0 0 10px 10px; }
+  .panel-disclosure[open] > summary { border-radius: 12px 12px 0 0; }
+  .panel-disclosure .card { border-radius: 0 0 12px 12px; }
   .disclosure-chevron {
     width: 7px; height: 7px; flex: 0 0 auto;
     border-right: 1.7px solid var(--dim); border-bottom: 1.7px solid var(--dim);
     transform: rotate(45deg); transition: transform var(--dur-fast) var(--ease);
   }
   .panel-disclosure[open] .disclosure-chevron { transform: rotate(225deg); }
-  .panel-disclosure > summary:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 60%, transparent); outline-offset: 2px; }
+  .panel-disclosure > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   /* rows sit on one grouped card per section, the way native settings do */
   .card {
-    background: var(--card); border-radius: 10px; overflow: hidden;
+    background: var(--card); border-radius: 12px; overflow: hidden;
+    box-shadow: inset 0 0 0 1px var(--line);
   }
   .row {
     display: flex; align-items: center; justify-content: space-between;
@@ -307,7 +309,7 @@
   }
   .row + .row::before {
     content: ""; position: absolute; inset-block-start: 0;
-    inset-inline: 12px 0; height: .5px; background: var(--line);
+    inset-inline: 12px 0; height: 1px; background: var(--line);
   }
   .row > label, .row .row-name { color: var(--ink); flex: 1 1 auto; min-width: 0; }
 
@@ -326,27 +328,27 @@
   /* ---- switch ---- */
   .switch {
     flex: 0 0 auto; position: relative; display: block;
-    width: 38px; height: 23px; border-radius: 980px;
+    width: 40px; height: 24px; border-radius: 8px;
     background: var(--switch-off);
     transition: background var(--dur-fast) var(--ease);
   }
   .switch::after {
     content: ""; position: absolute;
-    inset-block-start: 1.5px; inset-inline-start: 1.5px;
-    width: 20px; height: 20px; border-radius: 50%;
+    inset-block-start: 3px; inset-inline-start: 3px;
+    width: 18px; height: 18px; border-radius: 5.5px;
     background: #FFFFFF; box-shadow: var(--thumb-shadow);
     transition: transform var(--dur) var(--ease);
   }
   [aria-pressed="true"] > .switch { background: var(--accent); }
-  [aria-pressed="true"] > .switch::after { transform: translateX(15px); }
+  [aria-pressed="true"] > .switch::after { transform: translateX(16px); }
   :host-context([dir="rtl"]) [aria-pressed="true"] > .switch::after,
-  [dir="rtl"] [aria-pressed="true"] > .switch::after { transform: translateX(-15px); }
+  [dir="rtl"] [aria-pressed="true"] > .switch::after { transform: translateX(-16px); }
 
   /* ---- sliders ---- */
   .slider { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px 10px; position: relative; }
   .slider + .slider::before, .row + .slider::before, .slider + .row::before {
     content: ""; position: absolute; inset-block-start: 0;
-    inset-inline: 12px 0; height: .5px; background: var(--line);
+    inset-inline: 12px 0; height: 1px; background: var(--line);
   }
   .slider .top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
   .slider .name { color: var(--ink); }
@@ -380,7 +382,7 @@
   }
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none; appearance: none;
-    width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+    width: 18px; height: 18px; margin-top: -7px; border-radius: 6px;
     background: #FFFFFF; box-shadow: var(--thumb-shadow);
     transition: transform var(--dur-fast) var(--ease);
   }
@@ -388,8 +390,8 @@
 
   /* ---- segmented control ---- */
   .segmented {
-    display: flex; gap: 2px; padding: 2px;
-    background: var(--fill-1); border-radius: 9px;
+    display: flex; gap: 2px; padding: 3px;
+    background: var(--fill-1); border-radius: 10px;
     touch-action: pan-y;
   }
   .segmented.grid2 { display: grid; grid-template-columns: 1fr 1fr; }
@@ -397,7 +399,7 @@
   .segmented button {
     flex: 1 1 0; min-width: 0;
     border: 0; background: none; color: var(--ink);
-    font-size: var(--t-body); letter-spacing: var(--track-body); padding: 6px 6px; border-radius: 7px; cursor: pointer;
+    font-size: var(--t-body); letter-spacing: var(--track-body); padding: 6px 6px; border-radius: 7.5px; cursor: pointer;
     font-variant-numeric: tabular-nums; white-space: nowrap;
     /* "2×" keeps its order in an Arabic sheet; an Arabic word keeps its own. */
     unicode-bidi: plaintext;
@@ -405,8 +407,7 @@
   }
   .segmented button:hover { background: var(--fill-3); }
   .segmented button[aria-pressed="true"] {
-    background: var(--fill-2); font-weight: 590;
-    box-shadow: 0 1px 3px rgba(0,0,0,.4), inset 0 .5px 0 rgba(255,255,255,.12);
+    background: var(--accent-fill); color: var(--accent-ink); font-weight: 650;
   }
 
   /* ---- action buttons ---- */
@@ -414,14 +415,15 @@
   .chips { display: flex; flex-wrap: wrap; gap: 6px; touch-action: pan-y; }
   .chip {
     display: inline-flex; align-items: center; gap: 6px;
-    border: .5px solid var(--line-strong); background: var(--fill-1); color: var(--ink);
-    border-radius: 8px; padding: 7px 11px; font-size: var(--t-body); letter-spacing: var(--track-body); cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--fill-3); color: var(--ink);
+    border-radius: 10px; padding: 7px 11px; font-size: var(--t-body); letter-spacing: var(--track-body); font-weight: 560; cursor: pointer;
     white-space: nowrap;
     transition: background var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
   }
   .glyph { display: block; flex: 0 0 auto; opacity: .85; }
   .glyph svg { width: 14px; height: 14px; display: block; }
   .chip[aria-pressed="true"] .glyph { opacity: 1; }
+  .chip[aria-pressed="true"] { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 45%, transparent); color: var(--accent-text); }
   .chip:hover { background: var(--fill-2); }
   .chip:active { transform: scale(.96); }
   /* Each row of actions fills the sheet's width, so a wrapped row does not
@@ -429,8 +431,8 @@
   .chips > .chip { flex: 1 1 auto; justify-content: center; }
 
   select {
-    background: var(--fill-1); border: .5px solid var(--line-strong); color: var(--ink);
-    border-radius: 7px; padding: 4px 8px; font-size: var(--t-body); letter-spacing: var(--track-body); cursor: pointer;
+    background: var(--fill-1); border: 1px solid var(--line-strong); color: var(--ink);
+    border-radius: 8px; padding: 4px 8px; font-size: var(--t-body); letter-spacing: var(--track-body); cursor: pointer;
   }
 
   /* ---- summary ---- */
@@ -439,7 +441,7 @@
        single line and long text — a summary, a diagnostic — is unreadable. */
     flex: 0 0 auto;
     margin: 0 16px 14px; padding: 12px 13px;
-    background: var(--card); border-radius: 10px;
+    background: var(--card); border-radius: 12px; box-shadow: inset 0 0 0 1px var(--line);
     font-size: var(--t-body); letter-spacing: var(--track-body); line-height: 1.7; white-space: pre-wrap;
     max-height: 320px; min-height: 120px; overflow-y: auto; color: var(--ink);
     -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
@@ -450,7 +452,7 @@
   .summary-list { list-style: none; margin: 0; padding: 0; white-space: normal; }
   .summary-list li {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 8px 0; border-top: .5px solid var(--line);
+    padding: 8px 0; border-top: 1px solid var(--line);
   }
   .summary-list li:first-child { border-top: 0; }
   .summary-list .item-text { flex: 1 1 auto; min-width: 0; line-height: 1.35; }
@@ -472,7 +474,7 @@
     display: flex; align-items: center; gap: 8px; padding: 6px 12px; min-height: 40px; position: relative;
   }
   .mark + .mark::before {
-    content: ""; position: absolute; inset-block-start: 0; inset-inline: 12px 0; height: .5px; background: var(--line);
+    content: ""; position: absolute; inset-block-start: 0; inset-inline: 12px 0; height: 1px; background: var(--line);
   }
   .mark .when {
     background: none; border: 0; color: var(--accent-text); cursor: pointer; padding: 6px 4px; min-height: 36px;
@@ -484,17 +486,17 @@
   .inline-form { display: flex; gap: 8px; align-items: center; }
   .inline-form input[type=text] {
     flex: 1 1 auto; min-width: 0; min-height: 36px; padding: 6px 10px;
-    background: var(--fill-1); border: .5px solid var(--line-strong); border-radius: 8px; color: var(--ink);
+    background: var(--fill-1); border: 1px solid var(--line-strong); border-radius: 8px; color: var(--ink);
   }
   .inline-form input[type=text]::placeholder { color: var(--dim); }
 
   .foot { padding: 0 16px; }
   .welcome {
     display: flex; flex-direction: column; gap: 8px;
-    margin: 0 16px 14px; padding: 12px; border-radius: 10px;
-    background: var(--card); border: .5px solid var(--line-strong);
+    margin: 0 16px 14px; padding: 12px; border-radius: 12px;
+    background: var(--accent-soft); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
   }
-  .welcome b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590; }
+  .welcome b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700; }
   .welcome .link {
     align-self: flex-start; width: auto; background: none; border: 0; padding: 4px 0; cursor: pointer;
     color: var(--accent-text); font: inherit; font-size: var(--t-body); letter-spacing: var(--track-body);
@@ -503,15 +505,15 @@
   /* The one warning in the sheet: orange, like the popover's not-allowed state. */
   .health {
     display: flex; align-items: flex-start; gap: 8px;
-    margin: 0 16px 12px; padding: 10px 12px; border-radius: 10px;
-    background: rgba(255, 159, 10, .16); color: var(--ink);
+    margin: 0 16px 12px; padding: 10px 12px; border-radius: 12px;
+    background: rgba(251, 191, 36, .14); color: var(--ink);
     font-size: var(--t-body); letter-spacing: var(--track-body); line-height: 1.4;
   }
-  .health .glyph { margin-top: 2px; color: #FF9F0A; opacity: 1; }
+  .health .glyph { margin-top: 2px; color: #FBBF24; opacity: 1; }
   .health span:not(.glyph) { flex: 1 1 auto; min-width: 0; }
   .health .link {
     flex: 0 0 auto; width: auto; background: none; border: 0; padding: 0; cursor: pointer;
-    color: var(--accent-text); font: inherit; font-weight: 590;
+    color: var(--accent-text); font: inherit; font-weight: 650;
   }
   .foot-note { display: block; font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--dim); line-height: 1.4; }
   .link {
@@ -526,8 +528,8 @@
     position: fixed; z-index: 2147483001;
     background: var(--sheet); color: var(--ink);
     -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8);
-    border: .5px solid var(--line-strong); border-radius: 980px;
-    padding: 8px 16px; font-family: var(--font); font-size: var(--t-body); letter-spacing: var(--track-body); font-weight: 500;
+    border: 1px solid var(--line-strong); border-radius: 12px;
+    padding: 9px 16px; font-family: var(--font); font-size: var(--t-body); letter-spacing: var(--track-body); font-weight: 500;
     font-variant-numeric: tabular-nums;
     opacity: 0; transform: translateY(6px) scale(.96);
     transition: opacity var(--dur-fast) var(--ease), transform var(--dur) var(--ease);
@@ -579,7 +581,7 @@
       inset-inline: 0; left: 0; right: 0; width: auto;
       top: auto; bottom: 0;
       max-height: 82vh;
-      border-radius: 14px 14px 0 0;
+      border-radius: 16px 16px 0 0;
       border-inline: 0; border-block-end: 0;
       padding-block-end: calc(16px + env(safe-area-inset-bottom));
       animation: sheet-up var(--dur) var(--ease);
@@ -614,7 +616,7 @@
     .fab:hover, .fab:active, .chip:active { transform: none; }
   }
   @media (prefers-reduced-transparency: reduce) {
-    :host { --sheet: #1C1C1E; }
+    :host { --sheet: #141416; }
     .panel, .fab, .toast, header { -webkit-backdrop-filter: none; backdrop-filter: none; }
   }
   `;

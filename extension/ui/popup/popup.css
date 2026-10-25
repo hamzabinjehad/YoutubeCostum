@@ -30,7 +30,7 @@ body {
   width: 100%; max-width: 260px; text-align: center;
 }
 .gate-body .mark { width: 44px; height: 44px; border-radius: 11px; }
-.gate-body b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590; }
+.gate-body b { font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700; }
 .gate-body input { width: 100%; text-align: center; }
 .gate-body .btn { width: 100%; }
 
@@ -104,7 +104,13 @@ body {
   -webkit-overflow-scrolling: touch;
   padding: 0 14px 14px;
   scrollbar-width: thin;
+  /* Content slid under the pinned header with nothing to say where the edge
+     was: a card cut in half beneath the hero. The rule appears only once
+     something has actually scrolled under it. */
+  border-block-start: 1px solid transparent;
+  transition: border-color var(--dur-fast) var(--ease);
 }
+.scroll[data-scrolled] { border-block-start-color: var(--separator); }
 .scroll::-webkit-scrollbar { width: 8px; }
 .scroll::-webkit-scrollbar-thumb {
   background: var(--fill-2, rgba(120,120,128,.28)); border-radius: 4px;
@@ -113,7 +119,7 @@ body {
 .scroll::-webkit-scrollbar-track { background: transparent; }
 
 /* The header and the search field are outside the scroll region. */
-.hero { margin: 14px 14px 0; }
+.hero { margin: 0; }
 
 /* Search is pinned under the header. It costs 44px of the pane and saves a
    scroll and seventeen tab stops on the way to any of 238 settings. */
@@ -122,31 +128,46 @@ body {
 #drill { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
 #drill > .drill-head { flex: 0 0 auto; }
 footer.pinned {
-  flex: 0 0 auto; padding: 8px 14px 14px;
-  border-block-start: .5px solid var(--separator);
+  flex: 0 0 auto; padding: 10px 14px 14px;
+  border-block-start: 1px solid var(--separator);
   background: var(--bg);
 }
+/* The way to everything else, so it carries the signal: a tinted card with
+   the name in the text accent. */
+footer.pinned .settings-row { background: var(--accent-soft); box-shadow: none; }
+footer.pinned .settings-row:hover { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+footer.pinned .settings-row .row-label > span { color: var(--accent-text); font-weight: 650; }
+footer.pinned .chevron { border-color: var(--accent-text); }
 
+/* The header is a bar, not a card: the mark, the name, a status pill that
+   says in words whether anything is happening, and the one switch that
+   governs all of it. */
 .hero {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px; min-height: 60px;
-  background: var(--bg-raised); border-radius: 14px;
-  box-shadow: var(--shadow-card);
+  display: flex; align-items: center; gap: 11px;
+  padding: 14px 16px 12px; min-height: 64px;
+  background: var(--bg);
   cursor: pointer;
-  transition: background var(--dur-fast) var(--ease);
 }
-.hero:hover { background: color-mix(in srgb, var(--bg-raised) 92%, var(--label)); }
-.hero-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
-.hero-text b { font-family: var(--font-display); font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590; letter-spacing: -.016em; }
+.hero-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; flex: 1 1 auto; }
+.hero-text b { font-family: var(--font-display); font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700; line-height: 1.2; }
 .hero-text small {
-  font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--label-2); margin-block-start: 1px;
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  padding: 2px 8px 2px 7px; border-radius: 6px;
+  background: var(--fill-1);
+  font-size: var(--t-caption); letter-spacing: var(--track-caption); font-weight: 600; color: var(--label-2);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
 }
-/* On means the accent; off should read as off at a glance, not just quieter. */
-.hero:has(#master:checked) .hero-text small { color: var(--accent-text); font-weight: 500; }
+/* The dot is the state at a glance; the words are the state for certain. */
+.hero-text small::before {
+  content: ""; flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: .9;
+}
+/* On means the signal; off should read as off at a glance, not just quieter. */
+.hero:has(#master:checked) .hero-text small { color: var(--accent-text); background: var(--accent-soft); }
 
 .mark {
-  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 8.5px;
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: 10px;
   background: linear-gradient(180deg, #FF4B4B 0%, #D6202B 100%);
   box-shadow: 0 1px 2px rgba(0, 0, 0, .18), inset 0 .5px 0 rgba(255, 255, 255, .35);
   position: relative;
@@ -166,8 +187,8 @@ footer.pinned {
 }
 
 /* ---- body ---- */
-main { display: flex; flex-direction: column; padding: 18px 0 4px; }
-section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 18px; }
+main { display: flex; flex-direction: column; padding: 14px 0 4px; }
+section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 20px; }
 
 /* The full catalogue is still in the popup, but it is a destination. The root
    stays a short operational surface even when all 238 settings exist below. */
@@ -177,18 +198,21 @@ section { display: flex; flex-direction: column; gap: 8px; padding-block-end: 18
 }
 #customize-workspace > section { padding-block-end: 18px; }
 
-/* Apple sets group headers in small caps grey above the group, not inside it. */
+/* Each group is named in small tracked capitals above its card, the way a
+   desk labels a bank of faders. Arabic has no case, so it is simply bold. */
 .label {
   display: flex; align-items: baseline; gap: 8px;
-  font-size: var(--t-caption); letter-spacing: var(--track-caption); font-weight: 590;
+  font-size: var(--t-caption); letter-spacing: var(--track-eyebrow); font-weight: 650;
+  text-transform: uppercase;
   color: var(--label-2);
   padding-inline: 2px;
 }
+body[dir="rtl"] .label { letter-spacing: 0; }
 .label > :first-child { flex: 1 1 auto; min-width: 0; }
 /* How far the section reaches, on the trailing edge of its heading: this
    video, every video, every watch page, all of YouTube. Regular weight, so it
    reads as a qualifier of the heading and not as a second heading. */
-.label .scope { font-weight: 400; flex: 0 0 auto; }
+.label .scope { font-weight: 500; flex: 0 0 auto; text-transform: none; letter-spacing: var(--track-caption); }
 .label .scope:empty { display: none; }
 /* The six presets are a shortcut, not the whole range — the panel and the
    settings page can both leave the speed between them. Showing the real value
@@ -233,16 +257,19 @@ footer .label { margin-block-start: 8px; }
   list-style: none; cursor: pointer;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   min-height: 44px; padding: 9px 14px;
-  font-size: var(--t-body); color: var(--label);
+  font-size: var(--t-body); font-weight: 560; color: var(--label);
   background: var(--bg-raised); border-radius: var(--r-list); box-shadow: var(--shadow-card);
   transition: background var(--dur-fast) var(--ease);
 }
 #changed > summary::-webkit-details-marker { display: none; }
 #changed > summary:hover { background: var(--fill-3); }
 #changed > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* Nothing changed is an empty slot, drawn as one: a dashed outline where the
+   card will be, with quiet text in it. */
 #changed.nothing > summary {
-  color: var(--label-2); cursor: default; pointer-events: none;
-  background: none; box-shadow: none; min-height: 0; padding: 2px 2px;
+  color: var(--label-2); cursor: default; pointer-events: none; font-weight: 400;
+  background: none; box-shadow: none;
+  border: 1px dashed var(--hairline);
 }
 #changed.nothing .summary-chevron { display: none; }
 #changed[open] .summary-chevron { transform: rotate(135deg); }
@@ -286,14 +313,14 @@ footer .label { margin-block-start: 8px; }
 }
 .settings-row .row-label {
   display: flex; flex: 1 1 auto; min-width: 0; flex-direction: column;
-  text-align: start; color: var(--label);
+  text-align: start; color: var(--label); font-weight: 560;
 }
+.settings-row .row-label small { font-weight: 400; }
 .settings-row .row-label span { overflow-wrap: break-word; }
 .settings-row .row-label small {
   margin-block-start: 1px; color: var(--label-2);
   font-size: var(--t-caption); letter-spacing: var(--track-caption);
 }
-#customize-entry { padding-block-end: 4px; }
 /* The Active mode row folds a picker out beneath it. The chevron turns to
    point at what it opened, the same shape rotated. */
 .settings-row.open .fold-chevron { transform: rotate(135deg); }
@@ -304,22 +331,22 @@ body[dir="rtl"] .settings-row.open .fold-chevron { transform: rotate(135deg); }
 #mode-picker {
   margin-block-start: -8px;
   border-start-start-radius: 0; border-start-end-radius: 0;
-  border-block-start: .5px solid var(--separator);
+  border-block-start: 1px solid var(--separator);
 }
 /* One exclusive choice: the chosen row carries a tick, the others carry the
    space for one, so the labels line up whichever is chosen. */
 .tick { width: 18px; height: 18px; flex: 0 0 auto; color: var(--accent-text); visibility: hidden; }
 .tick path { fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .list-row.pick[aria-checked="true"] .tick { visibility: visible; }
-.list-row.pick[aria-checked="true"] .row-label > span:first-child { font-weight: 590; }
+.list-row.pick[aria-checked="true"] .row-label > span:first-child { font-weight: 650; }
 /* Two borders rotated into an arrowhead. The borders are deliberately physical
    rather than logical: a logical pair flips itself in RTL, and with the flipped
    rotation below that is two mirrorings on top of each other, which left the
    arrow pointing at the floor in Arabic. One mechanism does the mirroring. */
 .chevron {
   width: 7px; height: 7px; flex: 0 0 auto;
-  border-right: 1.8px solid var(--label-3);
-  border-top: 1.8px solid var(--label-3);
+  border-right: 2px solid var(--label-3);
+  border-top: 2px solid var(--label-3);
   transform: rotate(45deg);
 }
 body[dir="rtl"] .chevron { transform: rotate(-135deg); }
@@ -360,7 +387,7 @@ body { position: relative; }
 /* Outranks the "on" colour rule below it, which carries a :has() and would
    otherwise win: the switch is on, and the site still is not. */
 .hero.warn:has(#master:checked) .hero-text small,
-.hero.warn .hero-text small { color: var(--orange, #FF9F0A); }
+.hero.warn .hero-text small { color: var(--orange, #D97706); background: color-mix(in srgb, var(--orange, #D97706) 14%, transparent); }
 
 /* When there is no YouTube tab the page section has nothing true to say, so
    it steps aside rather than showing controls that describe nowhere. */
@@ -369,13 +396,13 @@ body { position: relative; }
 /* ---- the second level ---- */
 .drill-head {
   display: flex; align-items: center; gap: 6px;
-  padding: 10px 12px 8px;
+  padding: 10px 14px 8px;
   position: sticky; top: 0; z-index: 2;
-  background: var(--bg); border-bottom: .5px solid var(--separator);
+  background: var(--bg); border-bottom: 1px solid var(--separator);
 }
 .drill-head b { flex: 1 1 auto; min-width: 0; }
 #drill-reset { flex: 0 0 auto; min-height: 32px; }
-#drill-reset-confirm { margin: 8px 12px 0; }
+#drill-reset-confirm { margin: 8px 0 0; }
 /* Customize's own header, the same shape as a surface's: the way back on the
    leading edge, the name of where you are beside it. */
 .workspace-nav {
@@ -383,7 +410,7 @@ body { position: relative; }
   padding: 2px 0 10px;
 }
 .workspace-title {
-  font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590;
+  font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700;
   min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 /* Focus lands here when Customize opens on a touch screen. It is a title, not
@@ -397,7 +424,7 @@ body { position: relative; }
    I" the same way the row you tapped did. */
 .drill-head b {
   display: inline-flex; align-items: center; gap: 7px;
-  font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 590; letter-spacing: -.01em;
+  font-size: var(--t-title); letter-spacing: var(--track-title); font-weight: 700;
 }
 .drill-head .tab-icon { --icon: 21px; }
 button.back {
@@ -413,7 +440,10 @@ button.back {
 body[dir="rtl"] .back-chevron { transform: rotate(45deg); }
 button.back:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
-#drill-body { padding: 4px 12px 8px; display: flex; flex-direction: column; gap: 14px; }
+/* No inline padding of its own: the scroll around it already has the 14px
+   gutter, and adding 12 more made every drilled card 24px narrower than the
+   Control Center's. */
+#drill-body { padding: 4px 0 8px; display: flex; flex-direction: column; gap: 14px; }
 
 /* A folded group is a row you read; an open one is a card you work in. The
    fold is set at body size in the label colour, with a hover, because at
@@ -445,7 +475,7 @@ body[dir="rtl"] #drill-body .chev { transform: rotate(135deg); }
 #drill-body details.group[open] > summary .chev { transform: rotate(45deg); }
 #drill-body .group-count { margin-inline-start: auto; }
 #drill-body .group-title {
-  font-size: var(--t-body); letter-spacing: var(--track-body); font-weight: 590;
+  font-size: var(--t-body); letter-spacing: var(--track-body); font-weight: 650;
   color: var(--label);
 }
 #drill-body .list { margin: 0; }
@@ -458,10 +488,18 @@ body[dir="rtl"] #drill-body .chev { transform: rotate(135deg); }
    it — at this width a six-way segmented control has nowhere else to go. */
 .stack-row {
   display: flex; flex-direction: column; gap: 8px;
-  padding: 11px 12px;
-  border-block-end: .5px solid var(--separator);
+  padding: 11px 14px;
+  position: relative;
 }
-.stack-row:last-child { border-block-end: 0; }
+/* One separator grammar for both row shapes, inset to the label column. A
+   stacked row used to draw its own full-width bottom border, so a switch row
+   between two of them had a rule above it and none below, and the two kinds
+   of row began 2px apart. */
+:is(.list-row, .stack-row) + .stack-row::before,
+.stack-row + .list-row::before {
+  content: ""; position: absolute; inset-block-start: 0;
+  inset-inline: 14px 0; height: 1px; background: var(--separator);
+}
 .stack-row .row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .stack-row input[type="range"] { width: 100%; accent-color: var(--accent); }
 
@@ -504,7 +542,7 @@ body[dir="rtl"] #drill-body .chev { transform: rotate(135deg); }
   align-self: flex-start;
   font: inherit; font-size: var(--t-body); font-variant-numeric: tabular-nums;
   padding: 6px 12px; min-height: 32px;
-  border: .5px solid var(--hairline); border-radius: var(--r-control);
+  border: 1px solid var(--hairline); border-block-end-width: 2px; border-radius: var(--r-control);
   background: var(--bg-raised); color: var(--label); cursor: pointer;
 }
 .keycap.unset { color: var(--label-2); }
@@ -558,8 +596,8 @@ button.row-value[data-modified]:hover { text-decoration-style: solid; }
   /* The UA sheet resets letter-spacing on form controls; `font: inherit` does
      not carry it, so the field has to ask. */
   letter-spacing: var(--track-body);
-  padding: 8px 11px; border-radius: 9px;
-  border: .5px solid var(--separator); background: var(--bg-raised); color: var(--label);
+  padding: 8px 12px; border-radius: 10px;
+  border: 1px solid var(--hairline); background: var(--bg-raised); color: var(--label);
 }
 .search input::placeholder { color: var(--label-2); }
 
@@ -568,7 +606,10 @@ button.row-value[data-modified]:hover { text-decoration-style: solid; }
   font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--label-2);
   font-variant-numeric: tabular-nums; flex: 0 0 auto;
 }
-.row-count[data-on] { color: var(--accent-text); font-weight: 590; }
+.row-count[data-on] {
+  color: var(--accent-text); font-weight: 650;
+  background: var(--accent-soft); padding: 1px 7px; border-radius: 6px;
+}
 .result-where {
   display: block; font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--label-2); margin-block-start: 1px;
 }
@@ -578,7 +619,10 @@ button.row-value[data-modified]:hover { text-decoration-style: solid; }
   font-size: var(--t-caption); letter-spacing: var(--track-caption); color: var(--label-2);
   font-variant-numeric: tabular-nums; letter-spacing: 0; text-transform: none;
 }
-#drill-body .group-count[data-on] { color: var(--accent-text); font-weight: 590; }
+#drill-body .group-count[data-on] {
+  color: var(--accent-text); font-weight: 650;
+  background: var(--accent-soft); padding: 1px 7px; border-radius: 6px;
+}
 
 /* ---- your settings: sync and recovery ---- */
 .sync-row {
@@ -597,7 +641,7 @@ button.row-value[data-modified]:hover { text-decoration-style: solid; }
 #mode-form { margin-top: 8px; }
 .mode-tools {
   display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px 10px;
-  border-top: .5px solid var(--separator, rgba(255,255,255,.08));
+  border-top: 1px solid var(--separator);
 }
 .mode-tools .btn { flex: 1 1 auto; min-height: 32px; padding-block: 4px; }
 .mode-tools .inline-form { flex: 1 1 100%; }
